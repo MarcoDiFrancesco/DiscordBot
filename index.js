@@ -1,61 +1,101 @@
-const { Client, Collection } = require("discord.js");
-const { config } = require("dotenv");
+import { Client, Collection } from "discord.js";
+import { config } from "dotenv";
+// import commands from "./handler/command"
+import fs from "fs";
+import { createRequire } from 'module';
 
-const client = new Client({
-    disableEveryone: true
-});
+// Exports .env
+config();
 
+const client = new Client();
 client.commands = new Collection();
-client.aliases = new Collection();
+const cooldowns = new Collection();
 
-config({
-    path: __dirname + "/.env"
-});
 
-["command"].forEach(handler => {
-    require(`./handler/${handler}`)(client);
-});
+const cleanMessage = message => {
+  // e.g. -> !command arg1 arg2 arg3
+  let message_str = message.content;
+  // Remove first character from string
+  // e.g. -> command arg1 arg2 arg3
+  message_str = message_str.slice(1);
+  // Remove starting and ending spaces from string
+  message_str = message_str.trim();
+  // Split string into array
+  // " " is replaced / +/ is used to not get an empty
+  // item in the array if 2 spaces are placed
+  message_str = message_str.split(/ +/);
+  return message_str;
+}
 
 // Se the status
-client.on("ready", () => {
-    console.log(`I'm online, my name is ${client.user.username}`);
-    client.user.setPresence({
-        status: "online",
-        game: {
-            name: "Me getting developed",
-            type: "WATCHING"
-        }
-    });
+client.once("ready", async () => {
+  console.log(`I'm online, my name is ${client.user.username}`);
+  client.user.setPresence({
+    status: "online",
+    game: {
+      name: "Me getting developed",
+      type: "WATCHING"
+    }
+  });
+
+  // Import all commands in Collection
+  // Commands list e.g. ['ping.js', 'beep.js']
+  const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+  for (const file of commandFiles) {
+    // Import file
+    const command = await import(`./commands/${file}`);
+    // Add item into Collection
+    client.commands.set(command.name, command);
+  }
 });
 
 client.on("message", async message => {
-    const prefix = "_";
-    if (message.author.bot) {
-        console.log("Not author message");
-        return;
-    }
-    // User's direct messages
-    if (!message.guild) {
-        console.log("Not guild");
-        return;
-    }
-    if (!message.content.startsWith(prefix)) {
-        console.log("Not starting with the prefix");
-        return;
-    }
-    if (!message.member) message.member = await message.guild.fetchMember(message);
+  // Message is sent by a bot
+  if (message.author.bot)
+    return;
+  // Message does not start with prefix
+  if (!message.content.startsWith(process.env.PREFIX))
+    return;
 
-    const args = message.content.slice(prefix.length).trim().split(/ +/g);
-    const cmd = args.shift().toLowerCase();
-    
-    if (cmd.length === 0 ) return;
+  // Get cleaned message
+  let args = cleanMessage(message);
+  // Pop first element from list and return it
+  const commandName = args.shift();
+  // Get command from Collection and try to execute it
+  // in case command is not found try to get aliases
+  const command = client.commands.get(commandName) || 
+    client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
 
-    let command = client.commands.get(cmd);
-    if (!command) command = client.commands.get(client.aliases.get(cmd));
-
-    if (command) {
-        command.run(client, message, args);
+  // Spam prevention
+  if (!cooldowns.has(command.name)) {
+    cooldowns.set(command.name, new Collection());
+  }
+  const now = Date.now();
+  const timestamps = cooldowns.get(command.name);
+  const cooldownAmount = 3 * 1000;
+  if (timestamps.has(message.author.id)) {
+    const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
+    if (now < expirationTime) {
+      const timeLeft = (expirationTime - now) / 1000;
+      return message.reply(`Non inviare messaggi troppo velocemente! Aspetta ancora ${timeLeft.toFixed(1)} secondi prima di riutilizzare il comando \`${command.name}\`.`);
     }
+  }
+  timestamps.set(message.author.id, now);
+  setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
+
+  try {
+    command.execute(message, args);
+  } catch {
+    message.reply(`questo comando non esiste! Scrivi \`${process.env.PREFIX}help\` per visualizzare tutti i comandi.`);
+  }
+
+  // User's direct messages
+  // if (!message.guild) {
+  // 	console.log("Not guild");
+  // 	return;
+  // }
+  // if (!message.member)
+  // 	message.member = await message.guild.fetchMember(message);
 });
 
 client.login(process.env.TOKEN);
