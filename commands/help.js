@@ -1,7 +1,8 @@
+import Player from '../models/Player.js'
+
 export const name = "help";
-export const description = "Returns latency of the server";
 export const aliases = ["aiuto"]
-export function execute(message, args) {
+export const execute = async (message, args) => {
   // if (!args.length) {
   //   return message.channel.send("Non hai specificato alcun argomento!");
   // }
@@ -17,5 +18,7 @@ export function execute(message, args) {
     " - `!qualcosa aaaa`",
     "**altro**: fa questo",
   ]
-  message.channel.send(text);
+  const player = new Player({_id: message.author.id, name: "something"});
+  await player.save();
+  return message.channel.send(text);
 }

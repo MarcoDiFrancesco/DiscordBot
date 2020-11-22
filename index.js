@@ -2,7 +2,7 @@ import { Client, Collection } from "discord.js";
 import { config } from "dotenv";
 // import commands from "./handler/command"
 import fs from "fs";
-import { createRequire } from 'module';
+import mongoose from 'mongoose';
 
 // Exports .env
 config();
@@ -38,7 +38,7 @@ client.once("ready", async () => {
     }
   });
 
-  // Import all commands in Collection
+  // Import all commands into Collection
   // Commands list e.g. ['ping.js', 'beep.js']
   const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
   for (const file of commandFiles) {
@@ -47,6 +47,9 @@ client.once("ready", async () => {
     // Add item into Collection
     client.commands.set(command.name, command);
   }
+
+  // Connect to monoose database
+  await mongoose.connect(process.env.MONGO_CONN_STRING, { useUnifiedTopology: true, useNewUrlParser:true });
 });
 
 client.on("message", async message => {
@@ -63,7 +66,7 @@ client.on("message", async message => {
   const commandName = args.shift();
   // Get command from Collection and try to execute it
   // in case command is not found try to get aliases
-  const command = client.commands.get(commandName) || 
+  const command = client.commands.get(commandName) ||
     client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
 
   // Spam prevention
@@ -96,6 +99,17 @@ client.on("message", async message => {
   // }
   // if (!message.member)
   // 	message.member = await message.guild.fetchMember(message);
+});
+
+// If there are errors, log them
+client.on("disconnect", () => client.logger.log("Bot is disconnecting...", "warn"))
+  .on("reconnecting", () => client.logger.log("Bot reconnecting...", "log"))
+  .on("error", (e) => client.logger.log(e, "error"))
+  .on("warn", (info) => client.logger.log(info, "warn"));
+
+//For any unhandled errors
+process.on("unhandledRejection", (err) => {
+  console.error(err);
 });
 
 client.login(process.env.TOKEN);
