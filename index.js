@@ -75,12 +75,12 @@ client.on("message", async message => {
   }
   const now = Date.now();
   const timestamps = cooldowns.get(command.name);
-  const cooldownAmount = 3 * 1000;
+  const cooldownAmount = 5 * 1000;
   if (timestamps.has(message.author.id)) {
     const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
     if (now < expirationTime) {
       const timeLeft = (expirationTime - now) / 1000;
-      return message.reply(`Non inviare messaggi troppo velocemente! Aspetta ancora ${timeLeft.toFixed(1)} secondi prima di riutilizzare il comando \`${command.name}\`.`);
+      return message.reply(`non inviare messaggi troppo velocemente! Aspetta ancora ${timeLeft.toFixed(1)} secondi prima di riutilizzare il comando \`${command.name}\`.`);
     }
   }
   timestamps.set(message.author.id, now);

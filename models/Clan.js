@@ -1,9 +1,13 @@
 import mongoose from 'mongoose';
 
 const Clan = mongoose.Schema({
-  id: String,
   tag: String,
-  name: String,
+  name: {
+    type: String,
+    default: ""
+  },
+  author: String,
+  confirmed: Boolean,
   players: [
     {
       type: mongoose.Schema.Types.ObjectId,
