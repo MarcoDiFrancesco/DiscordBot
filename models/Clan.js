@@ -7,13 +7,7 @@ const Clan = mongoose.Schema({
     default: ""
   },
   author: String,
-  confirmed: Boolean,
-  players: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Player'
-    }
-  ]
+  confirmed: Boolean
 });
 
 export default mongoose.model("Clan", Clan);

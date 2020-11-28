@@ -16,19 +16,18 @@ const execute = async (message, args) => {
     return message.author.send(`:x: Non hai ancora iscritto un clan! Utilizza il comando \`${process.env.PREFIX}iscrivi #F3893839A\` per iscriverne uno`);
   }
   let player = await Player.findOne({ tag: playerTag })
-  if (player) {
-    if (String(player.clan) === String(clan._id)){
-      await message.author.send(`:x: Hai già aggiunto questo player`)
-      return sendClanTable(message, clan);
-    }
-    return message.author.send(`:x: Il player è già stato aggiunto in un altro clan`)  
+  if (!player) {
+    await message.author.send(`:x: Non esiste alcun player iscritto con questo tag!`);
+    return sendClanTable(message, clan);
   }
-  const playerName = "TEST";
-  player = new Player({ tag: playerTag, name: playerName, clan: clan });
-  await player.save();
+  if (String(player.clan) !== String(clan._id)) {
+    await message.author.send(`:x: Questo player non è iscritto al torneo in questo clan! ${exapleMessage}`)
+    return sendClanTable(message, clan);
+  }
+  await Player.deleteOne({ tag: playerTag, clan: clan });
   sendClanTable(message, clan);
 }
 
-export const name = "aggiungi";
-export const aliases = ["add"];
+export const name = "rimuovi";
+export const aliases = ["remove"];
 export { execute };

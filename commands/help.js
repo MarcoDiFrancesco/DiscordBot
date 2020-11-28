@@ -1,17 +1,10 @@
 export const name = "help";
-export const aliases = ["aiuto"]
+export const aliases = ["aiuto", "comandi"]
 export const execute = async (message, args) => {
   const text = [
-    `Questa è la lista (scrivi i comandi con \`${process.env.PREFIX}\` davanti)`,
-    "**iscrivi**: fa questo",
-    "Esempi:",
-    " - `!iscrivi gigi`",
-    " - `!iscrivi altro`",
-    "**qualcosa**: fa questo",
-    "Esempi:",
-    " - `!qualcosa aga`",
-    " - `!qualcosa aaaa`",
-    "**altro**: fa questo",
+    `:boom: Sono il bot per le iscrizioni ai tornei :boom:`,
+    ``,
+    `Utilizza il comando   \`${process.env.PREFIX}iscrivi ED71G8Y9L\`   specificando il tag del tuo clan per iniziare l'iscrizione`,
   ]
   return message.channel.send(text);
 }
