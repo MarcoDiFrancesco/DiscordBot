@@ -23,13 +23,13 @@ const sendClanTable = async (message, clan) => {
     // title: `Iscrizione al torneo ${eventName}`,
     author: {
       name: 'MPM community bot',
-      // icon_url: 'https://i.imgur.com/wSTFkRM.png',
+      icon_url: 'https://i.imgur.com/wSTFkRM.png',
       // url: 'https://discord.js.org',
     },
     description: `🏆 Torneo: ${eventName}\n⚡ Clan: ${clanName} (${clan.tag})`,
-    // thumbnail: {
-    //   url: 'https://i.imgur.com/wSTFkRM.png',
-    // },
+    thumbnail: {
+      url: 'https://i.imgur.com/wSTFkRM.png',
+    },
     fields: fields,
     timestamp: new Date(),
     footer: {

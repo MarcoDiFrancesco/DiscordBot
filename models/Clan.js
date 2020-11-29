@@ -6,7 +6,7 @@ const Clan = mongoose.Schema({
     type: String,
     default: ""
   },
-  author: String,
+  representatives: [ String ],
   confirmed: Boolean
 });
 
