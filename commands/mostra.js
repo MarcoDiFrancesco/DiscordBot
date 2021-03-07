@@ -85,7 +85,7 @@ const getMainText = (players, clan) => {
   }
   return [
     {
-      name: "⠀⠀⠀Tag⠀⠀⠀⠀Nome",
+      name: "⠀⠀⠀Tag⠀⠀⠀⠀⠀Nome",
       value: values,
     },
   ];

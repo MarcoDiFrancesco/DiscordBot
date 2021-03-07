@@ -7,11 +7,14 @@ const execute = async (message, args) => {
   const clan = await Clan.findOne({
     representatives: { $in: [message.author.id] },
   });
+  let playerTag = args[0].toUpperCase();
+  if (playerTag.startsWith("#")) {
+    playerTag = playerTag.substring(1)
+  }
   // If there is any error in the checks
-  if (await aggiungiChecks(message, args, clan)) {
+  if (await aggiungiChecks(message, args, clan, playerTag)) {
     return;
   }
-  const playerTag = args[0].toUpperCase();
   let player = await Player.findOne({ tag: playerTag });
   if (player) {
     // TODO: test these 2 cases
@@ -57,7 +60,7 @@ const execute = async (message, args) => {
   await sendClanTable(message, clan);
 };
 
-export const aggiungiChecks = async (message, args, clan) => {
+export const aggiungiChecks = async (message, args, clan, playerTag) => {
   let exapleMessage = `Scrivi ad esempio \`${process.env.PREFIX}${name} A3I8L42I\``;
   if (message.guild) {
     const text = [`:x: Non utilizzare questo comando fuori dalla chat privata`];
@@ -76,13 +79,13 @@ export const aggiungiChecks = async (message, args, clan) => {
     return true;
   }
   // Check if tag contains non-correct characters
-  if (!/^[0-9a-zA-Z]+$/.test(args[0])) {
+  if (!/^[0-9a-zA-Z]+$/.test(playerTag)) {
     message.author.send(`:x: Inserisci solo lettere e numeri come tag clan`);
     return true;
   }
   if (!clan) {
     message.author.send(
-      `:x: Non hai ancora iscritto un clan! Utilizza il comando \`${process.env.PREFIX}iscrivi F3893839A\` per iscriverne uno`
+      `:x: Non hai ancora iscritto un clan! Utilizza il comando \`${process.env.PREFIX}iscrivi F3893839A\` nella chat globale per iscriverne uno`
     );
     return true;
   }

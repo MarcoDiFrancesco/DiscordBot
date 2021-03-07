@@ -2,9 +2,8 @@ import { Client, Collection } from "discord.js";
 // import commands from "./handler/command"
 import fs from "fs";
 import mongoose from "mongoose";
-import { sendClanTable } from "./commands/mostra.js";
+import { helpCommands } from "./commands/help.js";
 import { cleanMessage } from "./functions.js";
-import Clan from "./models/Clan.js";
 
 const client = new Client();
 client.commands = new Collection();
@@ -66,11 +65,12 @@ client.on("message", async (message) => {
   if (!command) {
     // If in private chat show embed
     if (!message.guild) {
-      const clan = await Clan.findOne({
-        representatives: { $in: [message.author.id] },
-      });
-      message.channel.send(":x: Questo comando non esiste!");
-      await sendClanTable(message, clan);
+      message.channel.send([":x: Questo comando non esiste!", "Utilizza i seguenti comandi:", ...helpCommands]);
+
+      // const clan = await Clan.findOne({
+      //   representatives: { $in: [message.author.id] },
+      // });
+      // await sendClanTable(message, clan);
       return;
     }
     message.reply(

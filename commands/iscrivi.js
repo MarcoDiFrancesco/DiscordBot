@@ -11,18 +11,27 @@ const execute = async (message, args) => {
   }
   let exapleMessage = `Scrivi ad esempio \`${process.env.PREFIX}iscrivi A3I8L42I\``;
   if (args.length < 1) {
-    return message.reply(
+    message.reply(
       `:x: Non hai specificato il tag del clan! ${exapleMessage}`
     );
+    return;
   }
   if (args.length > 1) {
-    return message.reply(
+    message.reply(
       `:x: Hai specificato troppi argomenti! ${exapleMessage}`
     );
+    return;
   }
 
-  const clanTag = args[0].toUpperCase();
-  // TODO: clean clanTag from bold, italic, emoji, lowercase
+  let clanTag = args[0].toUpperCase();
+  if (clanTag.startsWith("#")) {
+    clanTag = clanTag.substring(1)
+  }
+  // Check if tag contains non-correct characters
+  if (!/^[0-9a-zA-Z]+$/.test(clanTag)) {
+    message.reply(`:x: Inserisci solo lettere e numeri come tag clan`);
+    return true;
+  }
 
   // Check if clan was subscribed by someone else
   let clan = await Clan.findOne({ tag: clanTag });
@@ -54,7 +63,7 @@ const execute = async (message, args) => {
   }
 
   let res = await fetch(
-    `https://api.clashofclans.com/v1/players/%23${clanTag}`,
+    `https://api.clashofclans.com/v1/clans/%23${clanTag}`,
     {
       headers: new Headers({
         Accept: "application/json",

@@ -1,4 +1,4 @@
-# DiscordBotYoutube
+# MPM Discord Bot
 
 Discord bot for tournament creation
 
