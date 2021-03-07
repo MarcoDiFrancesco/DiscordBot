@@ -1,7 +1,5 @@
 # DiscordBotYoutube
 
-Get youtube from a list of channels and post the link of new videos:
-https://developer.clashofclans.com/#/documentation
+Discord bot for tournament creation
 
-Mee6 for a simple youtube bot that shares link of one specified youtube channel:
-https://mee6.xyz/
+![https://i.imgur.com/GdzfxcM.png](https://i.imgur.com/GdzfxcM.png)
