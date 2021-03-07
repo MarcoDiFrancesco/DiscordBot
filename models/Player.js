@@ -1,15 +1,15 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const Player = mongoose.Schema({
   tag: String,
   name: String,
   primary: {
     type: Boolean,
-    default: True
+    default: true,
   },
   clan: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Clan'
+    ref: "Clan",
   },
 });
 

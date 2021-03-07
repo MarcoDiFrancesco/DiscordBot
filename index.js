@@ -1,12 +1,10 @@
 import { Client, Collection } from "discord.js";
-import dotenv from "dotenv";
 // import commands from "./handler/command"
 import fs from "fs";
-import mongoose from 'mongoose';
-import { cleanMessage } from './functions.js'
-
-// Source .env
-dotenv.config();
+import mongoose from "mongoose";
+import { sendClanTable } from "./commands/mostra.js";
+import { cleanMessage } from "./functions.js";
+import Clan from "./models/Clan.js";
 
 const client = new Client();
 client.commands = new Collection();
@@ -14,18 +12,20 @@ const cooldowns = new Collection();
 
 // Set status
 client.once("ready", async () => {
-  console.log(`I'm online, my name is ${client.user.username}`);
+  console.log(`The bot is now online`);
   client.user.setPresence({
     status: "online",
     game: {
-      name: "I'm getting developed",
-      type: "WATCHING"
-    }
+      name: "Mettimi alla prova :wink: MPM",
+      type: "WATCHING",
+    },
   });
 
   // Import all commands into Collection
   // Commands list e.g. ['ping.js', 'beep.js']
-  const commandFiles = fs.readdirSync('./commands').filter(file => file.endsWith('.js'));
+  const commandFiles = fs
+    .readdirSync("./commands")
+    .filter((file) => file.endsWith(".js"));
   for (const file of commandFiles) {
     // Await is needed
     const command = await import(`./commands/${file}`);
@@ -34,12 +34,17 @@ client.once("ready", async () => {
   }
 
   // Connect to monoose database
-  await mongoose.connect(process.env.MONGO_CONN_STRING, { useUnifiedTopology: true, useNewUrlParser: true });
+  await mongoose.connect(process.env.MONGO_CONN_STRING, {
+    useUnifiedTopology: true,
+    useNewUrlParser: true,
+  });
 });
 
-client.on("message", async message => {
+client.on("message", async (message) => {
   // Message is sent by a bot
-  if (message.author.bot) return;
+  if (message.author.bot) {
+    return;
+  }
   // Allow commands without prefix only in DM
   if (!message.content.startsWith(process.env.PREFIX)) {
     if (message.guild) {
@@ -52,12 +57,27 @@ client.on("message", async message => {
   // Pop first element from list and return it
   const commandName = args.shift();
   // Get command from Collection and try to execute it, in case command is not found try to get aliases
-  const command = client.commands.get(commandName) || client.commands.find(cmd => cmd.aliases && cmd.aliases.includes(commandName));
+  const command =
+    client.commands.get(commandName) ||
+    client.commands.find(
+      (cmd) => cmd.aliases && cmd.aliases.includes(commandName)
+    );
   // If command not found
   if (!command) {
-    return message.reply(`questo comando non esiste! Scrivi \`${process.env.PREFIX}help\` per visualizzare tutti i comandi.`)
+    // If in private chat show embed
+    if (!message.guild) {
+      const clan = await Clan.findOne({
+        representatives: { $in: [message.author.id] },
+      });
+      message.channel.send(":x: Questo comando non esiste!");
+      await sendClanTable(message, clan);
+      return;
+    }
+    message.reply(
+      `:x: Questo comando non esiste! Scrivi \`${process.env.PREFIX}help\` per visualizzare tutti i comandi`
+    );
+    return;
   }
-
 
   // Spam prevention
   if (!cooldowns.has(command.name)) {
@@ -71,7 +91,13 @@ client.on("message", async message => {
     const expirationTime = timestamps.get(message.author.id) + cooldownAmount;
     if (now < expirationTime) {
       const timeLeft = (expirationTime - now) / 1000;
-      return message.reply(`non inviare messaggi troppo velocemente! Aspetta ancora ${timeLeft.toFixed(1)} secondi prima di riutilizzare il comando \`${command.name}\`.`);
+      return message.reply(
+        `:x: Non inviare messaggi troppo velocemente! Aspetta ancora ${timeLeft.toFixed(
+          1
+        )} secondi prima di riutilizzare il comando \`${process.env.PREFIX}${
+          command.name
+        }\``
+      );
     }
   }
   timestamps.set(message.author.id, now);
@@ -80,12 +106,15 @@ client.on("message", async message => {
   try {
     command.execute(message, args);
   } catch (e) {
-    message.reply(`c'è stato un errore nell'esecuzione di quel comando, contatta gli admin. Errore: \`${e}\``);
+    message.reply(
+      `c'è stato un errore nell'esecuzione di quel comando, contatta gli admin. Errore: \`${e}\``
+    );
   }
 });
 
 // If there are errors, log them
-client.on("disconnect", () => client.logger.log("Bot is disconnecting...", "warn"))
+client
+  .on("disconnect", () => client.logger.log("Bot is disconnecting...", "warn"))
   .on("reconnecting", () => client.logger.log("Bot reconnecting...", "log"))
   .on("error", (e) => client.logger.log(e, "error"))
   .on("warn", (info) => client.logger.log(info, "warn"));

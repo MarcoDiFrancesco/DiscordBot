@@ -1,19 +1,22 @@
 {
   "name": "discordbot",
   "version": "1.0.0",
-  "description": "A discord bot to link new youtube video in chat",
+  "description": "A discord bot",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "dev": "nodemon index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "type": "module",
   "author": "MarcoDiFrancesco",
-  "license": "ISC",
   "dependencies": {
     "ascii-table": "0.0.9",
-    "discord.js": "^12.4.1",
-    "dotenv": "^8.2.0",
-    "mongoose": "^5.10.15"
+    "discord.js": "^12.5.1",
+    "mongoose": "^5.11.19",
+    "node-fetch": "^2.6.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7"
   }
 }

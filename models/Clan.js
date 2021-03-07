@@ -1,13 +1,13 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
 const Clan = mongoose.Schema({
   tag: String,
-  name: {
-    type: String,
-    default: ""
+  name: String,
+  representatives: [Number],
+  confirmed: {
+    type: Boolean,
+    default: false,
   },
-  representatives: [ String ],
-  confirmed: Boolean
 });
 
 export default mongoose.model("Clan", Clan);
