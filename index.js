@@ -4,6 +4,7 @@ import fs from "fs";
 import mongoose from "mongoose";
 import { helpCommands } from "./commands/help.js";
 import { cleanMessage } from "./functions.js";
+import publicip from "public-ip";
 
 const client = new Client();
 client.commands = new Collection();
@@ -11,7 +12,7 @@ const cooldowns = new Collection();
 
 // Set status
 client.once("ready", async () => {
-  console.log(`The bot is now online`);
+  console.log(`The bot is now online at ${await publicip.v4()}`);
   client.user.setPresence({
     status: "online",
     game: {
