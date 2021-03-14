@@ -5,10 +5,14 @@ import mongoose from "mongoose";
 import { helpCommands } from "./commands/help.js";
 import { cleanMessage } from "./functions.js";
 import publicip from "public-ip";
+import ClashAPI from "./ClashAPI.js";
 
 const client = new Client();
 client.commands = new Collection();
 const cooldowns = new Collection();
+
+// Clash Of Clans API
+const api = new ClashAPI();
 
 // Set status
 client.once("ready", async () => {
@@ -64,18 +68,13 @@ client.on("message", async (message) => {
     );
   // If command not found
   if (!command) {
-    // If in private chat show embed
+    // Show only in private chat
     if (!message.guild) {
       message.channel.send([
         ":x: Questo comando non esiste!",
         "Utilizza i seguenti comandi:",
         ...helpCommands,
       ]);
-
-      // const clan = await Clan.findOne({
-      //   representatives: { $in: [message.author.id] },
-      // });
-      // await sendClanTable(message, clan);
       return;
     }
     message.reply(
@@ -109,7 +108,7 @@ client.on("message", async (message) => {
   setTimeout(() => timestamps.delete(message.author.id), cooldownAmount);
 
   try {
-    command.execute(message, args);
+    command.execute(message, args, api);
   } catch (e) {
     message.reply(
       `c'è stato un errore nell'esecuzione di quel comando, contatta gli admin. Errore: \`${e}\``
@@ -129,4 +128,4 @@ process.on("unhandledRejection", (err) => {
   console.error(err);
 });
 
-client.login(process.env.TOKEN);
+client.login(process.env.DISCORD_TOKEN);

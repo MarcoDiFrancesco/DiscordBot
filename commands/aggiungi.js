@@ -1,15 +1,14 @@
 import Player from "../models/Player.js";
 import Clan from "../models/Clan.js";
 import { sendClanTable } from "./mostra.js";
-import fetch, { Headers } from "node-fetch";
 
-const execute = async (message, args) => {
+const execute = async (message, args, api) => {
   const clan = await Clan.findOne({
     representatives: { $in: [message.author.id] },
   });
   let playerTag = args[0].toUpperCase();
   if (playerTag.startsWith("#")) {
-    playerTag = playerTag.substring(1)
+    playerTag = playerTag.substring(1);
   }
   // If there is any error in the checks
   if (await aggiungiChecks(message, args, clan, playerTag)) {
@@ -30,28 +29,20 @@ const execute = async (message, args) => {
     return;
   }
 
-  let res = await fetch(
-    `https://api.clashofclans.com/v1/players/%23${playerTag}`,
-    {
-      headers: new Headers({
-        Accept: "application/json",
-        Authorization: `Bearer ${process.env.COC_API_TOKEN}`,
-      }),
-    }
-  );
-  if (res.status === 404) {
-    await message.author.send(`:x: Il player con tag ${playerTag} non esiste`);
+  let [status, apiPlayer] = await api.getPlayer(playerTag);
+  if (status === 404) {
+    await message.author.send(`:x: Il player con tag #${playerTag} non esiste`);
     await sendClanTable(message, clan);
     return;
   }
-  if (res.status !== 200) {
+  if (status !== 200) {
+    console.error("COC API key not accepted");
     await message.author.send(
       ":exclamation: C'è stato un problema nei nostri server, contatta gentilmente gli admin :exclamation:"
     );
     return;
   }
-  res = await res.json();
-  const playerName = res.name;
+  const playerName = apiPlayer.name;
   player = new Player({ tag: playerTag, name: playerName, clan: clan });
   await player.save();
   message.author.send(
@@ -61,7 +52,7 @@ const execute = async (message, args) => {
 };
 
 export const aggiungiChecks = async (message, args, clan, playerTag) => {
-  let exapleMessage = `Scrivi ad esempio \`${process.env.PREFIX}${name} A3I8L42I\``;
+  let exapleMessage = `Scrivi ad esempio \`${process.env.PREFIX}${name} #A3I8L42I\``;
   if (message.guild) {
     const text = [`:x: Non utilizzare questo comando fuori dalla chat privata`];
     await message.channel.send(text);
@@ -75,6 +66,12 @@ export const aggiungiChecks = async (message, args, clan, playerTag) => {
   if (args.length > 1) {
     message.author.send(
       `:x: Hai specificato troppi argomenti! ${exapleMessage}`
+    );
+    return true;
+  }
+  if (playerTag.length < 6 || playerTag.length > 10) {
+    message.author.send(
+      `:x: Il tag di questo player non esiste!`
     );
     return true;
   }

@@ -26,7 +26,7 @@ const sendClanTable = async (message, clan) => {
       icon_url: "https://i.imgur.com/wSTFkRM.png",
       // url: 'https://discord.js.org',
     },
-    description: `:trophy: Clan: ${clan.name} (${clan.tag})\n${clanConfirmedEmoji} Partecipazione confermata: ${clanConfirmedText}`,
+    description: `:trophy: Clan: ${clan.name} (#${clan.tag})\n${clanConfirmedEmoji} Partecipazione confermata: ${clanConfirmedText}`,
     thumbnail: {
       url: "https://i.imgur.com/wSTFkRM.png",
     },
@@ -42,7 +42,6 @@ const sendClanTable = async (message, clan) => {
 
 const getMainText = (players, clan) => {
   let values = [];
-
   const numbers = [
     ":one:",
     ":two:",

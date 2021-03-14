@@ -2,7 +2,7 @@ import Clan from "../models/Clan.js";
 import { sendClanTable } from "./mostra.js";
 import fetch, { Headers } from "node-fetch";
 
-const execute = async (message, args) => {
+const execute = async (message, args, api) => {
   if (!message.guild) {
     await message.author.send(
       ":x: Utilizza questo comando nella chat globale!"
@@ -11,21 +11,17 @@ const execute = async (message, args) => {
   }
   let exapleMessage = `Scrivi ad esempio \`${process.env.PREFIX}iscrivi A3I8L42I\``;
   if (args.length < 1) {
-    message.reply(
-      `:x: Non hai specificato il tag del clan! ${exapleMessage}`
-    );
+    message.reply(`:x: Non hai specificato il tag del clan! ${exapleMessage}`);
     return;
   }
   if (args.length > 1) {
-    message.reply(
-      `:x: Hai specificato troppi argomenti! ${exapleMessage}`
-    );
+    message.reply(`:x: Hai specificato troppi argomenti! ${exapleMessage}`);
     return;
   }
 
   let clanTag = args[0].toUpperCase();
   if (clanTag.startsWith("#")) {
-    clanTag = clanTag.substring(1)
+    clanTag = clanTag.substring(1);
   }
   // Check if tag contains non-correct characters
   if (!/^[0-9a-zA-Z]+$/.test(clanTag)) {
@@ -54,7 +50,7 @@ const execute = async (message, args) => {
   clan = await Clan.findOne({ representatives: { $in: [message.author.id] } });
   if (clan) {
     await message.reply(
-      `:x: Stai già registrando il clan **${clan.name}** (${clan.tag})`
+      `:x: Stai già registrando il clan **${clan.name}** (#${clan.tag})`
     );
     await message.author.send(
       ":white_check_mark: Utilizza questa chat per modificare i player"
@@ -62,27 +58,25 @@ const execute = async (message, args) => {
     return;
   }
 
-  let res = await fetch(
-    `https://api.clashofclans.com/v1/clans/%23${clanTag}`,
-    {
-      headers: new Headers({
-        Accept: "application/json",
-        Authorization: `Bearer ${process.env.COC_API_TOKEN}`,
-      }),
-    }
-  );
-  if (res.status === 404) {
-    await message.reply(`:x: Il clan con tag ${clanTag} non esiste`);
+  // This check makes sense not in the top
+  if (clanTag.length < 6 || clanTag.length > 10) {
+    message.reply(`:x: Il tag di questo clan non esiste!`);
+    return true;
+  }
+
+  let [status, apiClan] = await api.getClan(clanTag);
+  if (status === 404) {
+    await message.reply(`:x: Il clan con tag #${clanTag} non esiste`);
     return;
   }
-  if (res.status !== 200) {
+  if (status !== 200) {
+    console.error("COC API key not accepted");
     await message.reply(
       ":exclamation: C'è stato un problema nei nostri server, contatta gentilmente gli admin :exclamation:"
     );
     return;
   }
-  res = await res.json();
-  const clanName = res.name;
+  const clanName = apiClan.name;
   clan = new Clan({
     tag: clanTag,
     name: clanName,
