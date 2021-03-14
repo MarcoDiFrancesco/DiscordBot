@@ -30,7 +30,8 @@ export const execute = async (message) => {
 };
 
 export const helpCommands = [
-  `:arrow_forward: \`${process.env.PREFIX}aggiungi PLAYERTAG\` specificando il tag del player che parteciperà al torneo`,
-  `:arrow_forward: \`${process.env.PREFIX}rimuovi PLAYERTAG\` per disiscrivere un player dal torneo`,
-  `:arrow_forward: \`${process.env.PREFIX}conferma\` per confermare l'iscrizione di questi player al torneo, una volta confermato non sarà più possibile cambiare i player`,
-]
+  `:arrow_forward: \`${process.env.PREFIX}aggiungi #ABCDEFGH\` iscrive il player al torneo`,
+  `:arrow_forward: \`${process.env.PREFIX}rimuovi #ABCDEFGH\` disiscrive il player dal torneo`,
+  `:white_circle: \`${process.env.PREFIX}account-secondario #ABCDEFGH\` imposta l'acocunt come profilo secondario (profilo mulinello)`,
+  `:ok: \`${process.env.PREFIX}conferma\` conferma l'iscrizione dei player e del profilo secondario al torneo, una volta confermato non sarà più possibile cambiare i player e sarà necessario contattare gli admin`,
+];

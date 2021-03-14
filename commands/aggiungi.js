@@ -6,17 +6,16 @@ const execute = async (message, args, api) => {
   const clan = await Clan.findOne({
     representatives: { $in: [message.author.id] },
   });
-  let playerTag = args[0].toUpperCase();
-  if (playerTag.startsWith("#")) {
-    playerTag = playerTag.substring(1);
-  }
-  // If there is any error in the checks
+  let playerTag = args[0];
   if (await aggiungiChecks(message, args, clan, playerTag)) {
     return;
   }
+  playerTag = playerTag.toUpperCase();
+  if (playerTag.startsWith("#")) {
+    playerTag = playerTag.substring(1);
+  }
   let player = await Player.findOne({ tag: playerTag });
   if (player) {
-    // TODO: test these 2 cases
     if (String(player.clan) === String(clan._id)) {
       await message.author.send(`:x: Hai già aggiunto questo player`);
       await sendClanTable(message, clan);
@@ -45,7 +44,7 @@ const execute = async (message, args, api) => {
   const playerName = apiPlayer.name;
   player = new Player({ tag: playerTag, name: playerName, clan: clan });
   await player.save();
-  message.author.send(
+  await message.author.send(
     `:white_check_mark: Aggiunto **${player.name}** (${player.tag})`
   );
   await sendClanTable(message, clan);
@@ -69,10 +68,13 @@ export const aggiungiChecks = async (message, args, clan, playerTag) => {
     );
     return true;
   }
-  if (playerTag.length < 6 || playerTag.length > 10) {
-    message.author.send(
-      `:x: Il tag di questo player non esiste!`
-    );
+  playerTag = playerTag.toUpperCase();
+  if (playerTag.startsWith("#")) {
+    playerTag = playerTag.substring(1);
+  }
+  if (playerTag && (playerTag.length < 6 || playerTag.length > 10)) {
+    await message.author.send(`:x: Il tag di questo player non esiste!`);
+    await sendClanTable(message, clan);
     return true;
   }
   // Check if tag contains non-correct characters

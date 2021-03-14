@@ -7,11 +7,14 @@ const execute = async (message, args) => {
   const clan = await Clan.findOne({
     representatives: { $in: [message.author.id] },
   });
-  // If there is any error in the checks
-  if (await aggiungiChecks(message, args, clan)) {
+  let playerTag = args[0];
+  if (await aggiungiChecks(message, args, clan, playerTag)) {
     return;
   }
-  const playerTag = args[0].toUpperCase();
+  playerTag = playerTag.toUpperCase();
+  if (playerTag.startsWith("#")) {
+    playerTag = playerTag.substring(1);
+  }
   let player = await Player.findOne({ tag: playerTag });
   if (!player) {
     await message.author.send(

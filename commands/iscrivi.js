@@ -1,6 +1,5 @@
 import Clan from "../models/Clan.js";
 import { sendClanTable } from "./mostra.js";
-import fetch, { Headers } from "node-fetch";
 
 const execute = async (message, args, api) => {
   if (!message.guild) {
@@ -88,10 +87,10 @@ const execute = async (message, args, api) => {
     `:white_check_mark: Iscrivi il clan **${clanName}** nella nuova chat creata!`
   );
   await message.author.send(
-    `:fire: Benvenuto alla toreo organizzato da MPM :fire:`
+    `:fire: Benvenuto al toreo organizzato da MPM :fire:\nUtilizza i comandi scritti sotto per`
   );
   await sendClanTable(message, clan);
 };
 export const name = "iscrivi";
-export const aliases = [];
+export const aliases = ["iscrivo"];
 export { execute };

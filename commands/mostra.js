@@ -1,7 +1,7 @@
 import Player from "../models/Player.js";
 import Clan from "../models/Clan.js";
 
-const sendClanTable = async (message, clan) => {
+const sendClanTable = async (message, clan, isMostraCommand) => {
   const players = await Player.find({ clan: clan });
   // TODO: get it from somewhere
   let clanConfirmedEmoji, clanConfirmedText, footerText, color;
@@ -13,7 +13,7 @@ const sendClanTable = async (message, clan) => {
   } else {
     clanConfirmedEmoji = ":x:";
     clanConfirmedText = "No";
-    footerText = `Il clan NON è ancora stato confermato`;
+    footerText = `Clan NON confermato`;
     color = "0x0099ff";
   }
 
@@ -22,15 +22,16 @@ const sendClanTable = async (message, clan) => {
     color: color,
     // title: `Iscrizione al torneo ${eventName}`,
     author: {
-      name: "MPM community bot",
-      icon_url: "https://i.imgur.com/wSTFkRM.png",
+      name: "MPM bot",
+      icon_url: "https://i.imgur.com/OyUTcF7.png",
       // url: 'https://discord.js.org',
     },
-    description: `:trophy: Clan: ${clan.name} (#${clan.tag})\n${clanConfirmedEmoji} Partecipazione confermata: ${clanConfirmedText}`,
+    // description: `:trophy: Clan: ${clan.name} (#${clan.tag})\n${clanConfirmedEmoji} Partecipazione confermata: ${clanConfirmedText}`,
+    description: `:trophy: Clan: ${clan.name}\n${clanConfirmedEmoji} Partecipazione confermata: ${clanConfirmedText}`,
     thumbnail: {
-      url: "https://i.imgur.com/wSTFkRM.png",
+      url: "https://i.imgur.com/OyUTcF7.png",
     },
-    fields: getMainText(players, clan),
+    fields: getMainText(players, clan, isMostraCommand),
     timestamp: new Date(),
     footer: {
       // TODO: test is prefix show correctly
@@ -40,7 +41,7 @@ const sendClanTable = async (message, clan) => {
   await message.author.send({ embed: exampleEmbed });
 };
 
-const getMainText = (players, clan) => {
+const getMainText = (players, clan, isMostraCommand) => {
   let values = [];
   const numbers = [
     ":one:",
@@ -64,23 +65,44 @@ const getMainText = (players, clan) => {
       for (let i = 0; i < 9 - players[counter].tag.length; i++) {
         str += "  ";
       }
-      str += players[counter].name;
+      let name = players[counter].name;
+      if (name.length > 9) {
+        name = name.substring(0, 9);
+        name += "..";
+      }
+      str += name;
     } else {
       str += "⠀-⠀⠀⠀⠀⠀⠀⠀-";
     }
     counter += 1;
     values.push(str);
   }
-  if (!clan.confirmed) {
-    values.push("");
-    values.push("Comandi:");
-    values.push(`:arrow_forward: \`${process.env.PREFIX}aggiungi PLAYERTAG\``);
-    values.push(`:arrow_forward: \`${process.env.PREFIX}rimuovi PLAYERTAG\``);
-    values.push(`:arrow_forward: \`${process.env.PREFIX}conferma\``);
-    values.push(`:arrow_forward: \`${process.env.PREFIX}help\``);
-  } else {
-    values.push("");
-    values.push("Il clan è stato confermato, se devi modificare player contatta gli admin")
+
+    values.push("**⠀⠀⠀Account secondario**");
+    values.push(`:white_circle:⠀\`FJDKJFDK\` NOMEEEEE`);
+  if (!isMostraCommand)  {
+    if (!clan.confirmed) {
+      values.push("");
+      values.push("Comandi:");
+      values.push(
+        `:arrow_forward: \`${process.env.PREFIX}aggiungi PLAYERTAG\``
+      );
+      values.push(`:arrow_forward: \`${process.env.PREFIX}rimuovi PLAYERTAG\``);
+      values.push(`:white_circle: \`${process.env.PREFIX}account-secondario PLAYERTAG\``);
+      if (players.length < 5) {
+        values.push(
+          `:ok: ~~\`${process.env.PREFIX}conferma\`~~ (5 player richiesti)`
+        );
+      } else {
+        values.push(`:ok: \`${process.env.PREFIX}conferma\``);
+      }
+      values.push(`:grey_question: \`${process.env.PREFIX}help\``);
+    } else {
+      values.push("");
+      values.push(
+        "Clan confermato, se vuoi modificare player contatta gli admin"
+      );
+    }
   }
   return [
     {
@@ -92,22 +114,36 @@ const getMainText = (players, clan) => {
 
 const execute = async (message, args) => {
   const exapleMessage = `Scrivi ad esempio \`${process.env.PREFIX}${name} #A33BL422\``;
-  const clanTag = args[0];
   if (args.length < 1) {
-    return message.reply(
-      `non hai specificato il tag di alcun clan! ${exapleMessage}`
+    message.reply(
+      `:x: Non hai specificato il tag di alcun clan! ${exapleMessage}`
     );
-  } else if (args.length > 1) {
-    return message.reply(`hai specificato troppi argomenti! ${exapleMessage}`);
-  } else {
-    const clan = await Clan.exists({ tag: clanTag });
-    if (!clan) {
-      return message.reply(`questo clan non è registrato al torneo!`);
-    }
+    return;
   }
-
-  const clan = await Clan.findOne({ tag: args[0] });
-  sendClanTable(message, clan);
+  if (args.length > 1) {
+    message.reply(`hai specificato troppi argomenti! ${exapleMessage}`);
+    return;
+  }
+  let clanTag = args[0];
+  clanTag = clanTag.toUpperCase();
+  if (clanTag.startsWith("#")) {
+    clanTag = clanTag.substring(1);
+  }
+  if (clanTag && (clanTag.length < 6 || clanTag.length > 10)) {
+    message.reply(`:x: Il tag di questo clan non esiste!`);
+    return;
+  }
+  // Check if tag contains non-correct characters
+  if (!/^[0-9a-zA-Z]+$/.test(clanTag)) {
+    message.reply(`:x: Inserisci solo lettere e numeri come tag clan`);
+    return;
+  }
+  const clan = await Clan.findOne({ tag: clanTag });
+  if (!clan) {
+    message.reply(`:x: Questo clan non è registrato al torneo!`);
+    return;
+  }
+  sendClanTable(message, clan, true);
 };
 
 export const name = "mostra";
