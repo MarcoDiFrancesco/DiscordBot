@@ -15,7 +15,7 @@ client.once("ready", async () => {
   client.user.setPresence({
     status: "online",
     game: {
-      name: "Mettimi alla prova :wink: MPM",
+      name: "Mettimi alla prova :wink:",
       type: "WATCHING",
     },
   });
@@ -65,7 +65,11 @@ client.on("message", async (message) => {
   if (!command) {
     // If in private chat show embed
     if (!message.guild) {
-      message.channel.send([":x: Questo comando non esiste!", "Utilizza i seguenti comandi:", ...helpCommands]);
+      message.channel.send([
+        ":x: Questo comando non esiste!",
+        "Utilizza i seguenti comandi:",
+        ...helpCommands,
+      ]);
 
       // const clan = await Clan.findOne({
       //   representatives: { $in: [message.author.id] },
@@ -119,7 +123,7 @@ client
   .on("error", (e) => client.logger.log(e, "error"))
   .on("warn", (info) => client.logger.log(info, "warn"));
 
-//For any unhandled errors
+// For any unhandled errors
 process.on("unhandledRejection", (err) => {
   console.error(err);
 });
