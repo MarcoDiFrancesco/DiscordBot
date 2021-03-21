@@ -28,10 +28,9 @@ export default class ClashAPI {
         Authorization: `Bearer ${this.token}`,
       }),
     };
-    console.log("TRYING");
     let res = await fetch(url, headers);
     if (res.status === 403) {
-      console.log("REQUESTING NEW TOKEN");
+      console.log("Requesting new token");
       this.token = await this.getToken();
       headers = {
         headers: new Headers({
@@ -42,7 +41,6 @@ export default class ClashAPI {
       res = await fetch(url, headers);
     }
     let jsonRes = await res.json();
-    console.log("DONE");
     return [res.status, jsonRes];
   }
 

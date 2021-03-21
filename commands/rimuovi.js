@@ -30,6 +30,7 @@ const execute = async (message, args) => {
     await sendClanTable(message, clan);
     return;
   }
+  // TODO: test if it works without clan
   await Player.deleteOne({ tag: playerTag, clan: clan });
   message.author.send(
     `:white_check_mark: Rimosso **${player.name}** (${player.tag})`

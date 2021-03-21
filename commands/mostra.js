@@ -17,28 +17,38 @@ const sendClanTable = async (message, clan, isMostraCommand) => {
     color = "0x0099ff";
   }
 
-  const exampleEmbed = {
+  let description;
+  if (isMostraCommand) {
+    description = `:trophy: Clan: ${clan.name} (#${clan.tag})\n${clanConfirmedEmoji} Partecipazione confermata: ${clanConfirmedText}`;
+  } else {
+    description = `:trophy: Clan: ${clan.name}\n${clanConfirmedEmoji} Partecipazione confermata: ${clanConfirmedText}`;
+  }
+
+  const embed = {
     inline: true,
     color: color,
     // title: `Iscrizione al torneo ${eventName}`,
-    author: {
-      name: "MPM bot",
-      icon_url: "https://i.imgur.com/OyUTcF7.png",
-      // url: 'https://discord.js.org',
-    },
-    // description: `:trophy: Clan: ${clan.name} (#${clan.tag})\n${clanConfirmedEmoji} Partecipazione confermata: ${clanConfirmedText}`,
-    description: `:trophy: Clan: ${clan.name}\n${clanConfirmedEmoji} Partecipazione confermata: ${clanConfirmedText}`,
-    thumbnail: {
-      url: "https://i.imgur.com/OyUTcF7.png",
-    },
+    // author: {
+    // name: "MPM bot",
+    // icon_url: "https://i.imgur.com/OyUTcF7.png",
+    // url: 'https://discord.js.org',
+    // },
+    description: description,
+    // thumbnail: {
+    //   url: "https://i.imgur.com/OyUTcF7.png",
+    // },
     fields: getMainText(players, clan, isMostraCommand),
-    timestamp: new Date(),
+    // timestamp: new Date(),
     footer: {
-      // TODO: test is prefix show correctly
       text: footerText,
     },
   };
-  await message.author.send({ embed: exampleEmbed });
+  if (message.guild) {
+    await message.channel.send({ embed: embed })
+  } else {
+    await message.author.send({ embed: embed });
+  }
+  
 };
 
 const getMainText = (players, clan, isMostraCommand) => {
@@ -55,17 +65,26 @@ const getMainText = (players, clan, isMostraCommand) => {
     ":nine:",
     ":keycap_ten:",
   ];
+
+  const playersPrimary = [];
+  const playersSecondary = [];
+  for (const player of players) {
+    if (player.primary) {
+      playersPrimary.push(player);
+    } else {
+      playersSecondary.push(player);
+    }
+  }
   let counter = 0;
   for (const number of numbers) {
     let str = "";
     str += number;
-    if (players[counter]) {
-      str += `⠀\`${players[counter].tag}\``;
-      str += " ";
-      for (let i = 0; i < 9 - players[counter].tag.length; i++) {
+    if (playersPrimary[counter]) {
+      str += `⠀\`${playersPrimary[counter].tag}\` `;
+      for (let i = 0; i < 9 - playersPrimary[counter].tag.length; i++) {
         str += "  ";
       }
-      let name = players[counter].name;
+      let name = playersPrimary[counter].name;
       if (name.length > 9) {
         name = name.substring(0, 9);
         name += "..";
@@ -78,9 +97,14 @@ const getMainText = (players, clan, isMostraCommand) => {
     values.push(str);
   }
 
-    values.push("**⠀⠀⠀Account secondario**");
-    values.push(`:white_circle:⠀\`FJDKJFDK\` NOMEEEEE`);
-  if (!isMostraCommand)  {
+  values.push("**⠀⠀⠀Account secondario**");
+  if (!playersSecondary.length) {
+    values.push(":white_circle:⠀-⠀⠀⠀⠀⠀⠀⠀-");
+  }
+  for (const player of playersSecondary) {
+    values.push(`:white_circle:⠀\`${player.tag}\` ${player.name}`);
+  }
+  if (!isMostraCommand) {
     if (!clan.confirmed) {
       values.push("");
       values.push("Comandi:");
@@ -88,7 +112,9 @@ const getMainText = (players, clan, isMostraCommand) => {
         `:arrow_forward: \`${process.env.PREFIX}aggiungi PLAYERTAG\``
       );
       values.push(`:arrow_forward: \`${process.env.PREFIX}rimuovi PLAYERTAG\``);
-      values.push(`:white_circle: \`${process.env.PREFIX}account-secondario PLAYERTAG\``);
+      values.push(
+        `:white_circle: \`${process.env.PREFIX}account-secondario PLAYERTAG\``
+      );
       if (players.length < 5) {
         values.push(
           `:ok: ~~\`${process.env.PREFIX}conferma\`~~ (5 player richiesti)`
@@ -113,7 +139,7 @@ const getMainText = (players, clan, isMostraCommand) => {
 };
 
 const execute = async (message, args) => {
-  const exapleMessage = `Scrivi ad esempio \`${process.env.PREFIX}${name} #A33BL422\``;
+  const exapleMessage = `Scrivi ad esempio \`${process.env.PREFIX}${name} #TAGPLAYER\``;
   if (args.length < 1) {
     message.reply(
       `:x: Non hai specificato il tag di alcun clan! ${exapleMessage}`
@@ -140,7 +166,7 @@ const execute = async (message, args) => {
   }
   const clan = await Clan.findOne({ tag: clanTag });
   if (!clan) {
-    message.reply(`:x: Questo clan non è registrato al torneo!`);
+    message.reply(`:x: Il clan con tag #${clanTag} non è registrato al torneo!`);
     return;
   }
   sendClanTable(message, clan, true);

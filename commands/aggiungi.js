@@ -2,7 +2,7 @@ import Player from "../models/Player.js";
 import Clan from "../models/Clan.js";
 import { sendClanTable } from "./mostra.js";
 
-const execute = async (message, args, api) => {
+export const execute = async (message, args, api) => {
   const clan = await Clan.findOne({
     representatives: { $in: [message.author.id] },
   });
@@ -51,10 +51,10 @@ const execute = async (message, args, api) => {
 };
 
 export const aggiungiChecks = async (message, args, clan, playerTag) => {
-  let exapleMessage = `Scrivi ad esempio \`${process.env.PREFIX}${name} #A3I8L42I\``;
+  let exapleMessage = `Scrivi ad esempio \`${process.env.PREFIX}${name} #TAGPLAYER\``;
   if (message.guild) {
-    const text = [`:x: Non utilizzare questo comando fuori dalla chat privata`];
-    await message.channel.send(text);
+    await message.channel.send(`:x: Non utilizzare questo comando fuori dalla chat privata`);
+    return true;
   }
   if (args.length < 1) {
     message.author.send(
@@ -99,4 +99,3 @@ export const aggiungiChecks = async (message, args, clan, playerTag) => {
 
 export const name = "aggiungi";
 export const aliases = [];
-export { execute };

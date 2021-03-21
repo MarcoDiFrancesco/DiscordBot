@@ -9,6 +9,7 @@ export const execute = async (message) => {
     await message.channel.send(
       `:x: Non utilizzare questo comando fuori dalla chat privata del bot`
     );
+    return;
   }
   let clan = await Clan.findOne({
     representatives: { $in: [message.author.id] },

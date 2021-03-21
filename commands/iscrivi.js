@@ -8,7 +8,7 @@ const execute = async (message, args, api) => {
     );
     return;
   }
-  let exapleMessage = `Scrivi ad esempio \`${process.env.PREFIX}iscrivi A3I8L42I\``;
+  let exapleMessage = `Scrivi ad esempio \`${process.env.PREFIX}iscrivi #TAGCLAN\``;
   if (args.length < 1) {
     message.reply(`:x: Non hai specificato il tag del clan! ${exapleMessage}`);
     return;

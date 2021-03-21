@@ -5,7 +5,7 @@ import mongoose from "mongoose";
 import { helpCommands } from "./commands/help.js";
 import { cleanMessage } from "./functions.js";
 import publicip from "public-ip";
-import ClashAPI from "./ClashAPI.js";
+import ClashAPI from "./classes/ClashAPI.js";
 
 const client = new Client();
 client.commands = new Collection();

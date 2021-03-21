@@ -1,6 +1,6 @@
-# MPM Discord Bot
+# MPM Bot
 
-Discord bot for tournament creation
+Discord bot of the MPM community used for Clash Of Clans tournament creation.
 
 ![https://i.imgur.com/GdzfxcM.png](https://i.imgur.com/GdzfxcM.png)
 
