@@ -3,16 +3,22 @@ import Player from "../models/Player.js";
 
 export default class Command {
   constructor(cmdName, argsRule, msg, args, api) {
+    // e.g. 'admin-rimuovi'
     this.cmdName = cmdName;
+    // e.g. ["#TAGPLAYER", "#TAGCLAN"]
     this.argsRule = argsRule;
+    // Discord message object
     this.msg = msg;
+    // Need for lenght checks
+    // e.g. ["#ABCDEF", "#ABCDEF"]
     this.args = args;
+    // COC API object
     this.api = api;
   }
 
   /**
    * Get clan from database in this.clan
-   * If does not exist return true
+   * @returns true: if does not exist
    */
   async getClan() {
     // Check if this function was already called
@@ -25,7 +31,7 @@ export default class Command {
 
   /**
    * Get player from database in this.player
-   * If does not exist return true
+   * @returns true: if does not exist
    */
   async getPlayer() {
     // Check if this function was already called
@@ -38,6 +44,7 @@ export default class Command {
 
   /**
    * Get from COC api the player, if does not exist or there is an error return true
+   * @returns true: if error or player does not exist
    */
   async getPlayerApi() {
     const [status, player] = await this.api.getPlayer(this.playerTag);
@@ -46,7 +53,8 @@ export default class Command {
   }
 
   /**
-   * Get from COC api the clan, if does not exist or there is an error return true
+   * Get from COC api the clan
+   * @returns true: if error or clan does not exist
    */
   async getClanApi() {
     const [status, clan] = await this.api.getClan(this.clanTag);
@@ -55,7 +63,8 @@ export default class Command {
   }
 
   /**
-   * Private function
+   * Handle 404 and not 200 status codes
+   * @private
    */
   async checkApiStatus(status) {
     if (status === 404) {
@@ -84,13 +93,33 @@ export default class Command {
   }
 
   /**
-   * Check if user is admin
+   * Checks if user wrote it in a private chat
+   * @returns true: if wrote in public chat
    */
-  permissionChecks() {
-    if (!this.msg.guild) {
-      this.msg.author.send(`:x: Non utilizzare questo nella chat privata`);
+  privateChatCheck() {
+    if (this.msg.guild) {
+      this.send(`:x: Non utilizzare questo nella chat pubblica`);
       return true;
     }
+  }
+
+  /**
+   * Checks if user wrote it in a public chat
+   * @returns true if wrote in private chat
+   */
+  publicChatCheck() {
+    if (!this.msg.guild) {
+      this.send(`:x: Non utilizzare questo nella chat privata`);
+      return true;
+    }
+  }
+
+  /**
+   * Check if user is admin, and if the message is written in a public chat
+   * @returns true: if user is not admin
+   */
+  adminCheck() {
+    if (this.publicChatCheck()) return true;
     if (!this.msg.member.hasPermission("ADMINISTRATOR")) {
       this.send(`:x: Non hai i permessi per utilizzare questo comando`);
       return true;
@@ -98,8 +127,8 @@ export default class Command {
   }
 
   /**
-   * Do not remove argsNumber from the function to count the arguments with an if,
-   * this could lead to not counting arguments if the are falsy
+   * Check arguments to have the right length
+   * @returns true: if error
    */
   argsCheck() {
     let exaplemsg;
@@ -120,8 +149,9 @@ export default class Command {
     }
   }
 
-  /*
+  /**
    * Clean tags and check if it's in the correct format
+   * @returns true: if error
    */
   cleanTags() {
     if (this.clanTag) {
@@ -135,7 +165,8 @@ export default class Command {
   }
 
   /**
-   * Private function
+   * Check lenght and characters type of the tag.
+   * @private
    */
   tagCheck(tag, type) {
     if (!tag) {
@@ -153,7 +184,8 @@ export default class Command {
   }
 
   /**
-   * Private function
+   * Remove # if present
+   * @private
    */
   cleanTag(tag) {
     if (!tag) {

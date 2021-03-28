@@ -31,10 +31,10 @@ export const execute = async (message) => {
   }
   const players = await Player.find({ clan: clan });
   const minPlayers = 5;
-  if(players.length < minPlayers) {
+  if (players.length < minPlayers) {
     await message.author.send(
       `:x: Devono esserci almeno ${minPlayers} player prima di confermare il clan`
-    )
+    );
     await sendClanTable(message, clan);
     return;
   }

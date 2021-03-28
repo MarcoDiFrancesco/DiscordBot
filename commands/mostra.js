@@ -4,24 +4,24 @@ import Clan from "../models/Clan.js";
 const sendClanTable = async (message, clan, isMostraCommand) => {
   const players = await Player.find({ clan: clan });
   // TODO: get it from somewhere
-  let clanConfirmedEmoji, clanConfirmedText, footerText, color;
+  let confirmedEmoji, confirmedText, footerText, color;
   if (clan.confirmed) {
-    clanConfirmedEmoji = ":white_check_mark:";
-    clanConfirmedText = "Sì";
+    confirmedEmoji = ":white_check_mark:";
+    confirmedText = "Sì";
     footerText = `Il clan è stato confermato`;
     color = "0x77B155";
   } else {
-    clanConfirmedEmoji = ":x:";
-    clanConfirmedText = "No";
+    confirmedEmoji = ":x:";
+    confirmedText = "No";
     footerText = `Clan NON confermato`;
     color = "0x0099ff";
   }
 
   let description;
   if (isMostraCommand) {
-    description = `:trophy: Clan: ${clan.name} (#${clan.tag})\n${clanConfirmedEmoji} Partecipazione confermata: ${clanConfirmedText}`;
+    description = `:trophy: Clan: ${clan.name} (#${clan.tag})\n${confirmedEmoji} Partecipazione confermata: ${confirmedText}`;
   } else {
-    description = `:trophy: Clan: ${clan.name}\n${clanConfirmedEmoji} Partecipazione confermata: ${clanConfirmedText}`;
+    description = `:trophy: Clan: ${clan.name}\n${confirmedEmoji} Partecipazione confermata: ${confirmedText}`;
   }
 
   const embed = {
@@ -48,7 +48,6 @@ const sendClanTable = async (message, clan, isMostraCommand) => {
   } else {
     await message.author.send({ embed: embed });
   }
-  
 };
 
 const getMainText = (players, clan, isMostraCommand) => {

@@ -117,3 +117,4 @@ dist
 
 # Dev environment
 nodemon.json
+backup/

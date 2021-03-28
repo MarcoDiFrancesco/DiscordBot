@@ -5,7 +5,7 @@ import Command from "../classes/Command.js";
 
 export const execute = async (msg, args, api) => {
   const cmd = new Command(name, argsRule, msg, args, api);
-  if (cmd.permissionChecks()) return;
+  if (cmd.adminCheck()) return;
   if (cmd.argsCheck()) return;
   cmd.playerTag = args[0];
   if (cmd.cleanTags()) return;

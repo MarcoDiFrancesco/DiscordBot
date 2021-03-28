@@ -9,6 +9,7 @@ import ClashAPI from "./classes/ClashAPI.js";
 
 const client = new Client();
 client.commands = new Collection();
+
 const cooldowns = new Collection();
 
 // Clash Of Clans API
@@ -31,7 +32,6 @@ client.once("ready", async () => {
     .readdirSync("./commands")
     .filter((file) => file.endsWith(".js"));
   for (const file of commandFiles) {
-    // Await is needed
     const command = await import(`./commands/${file}`);
     // Add item into Collection
     client.commands.set(command.name, command);

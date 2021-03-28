@@ -32,24 +32,3 @@ const commandList = [
     ],
   },
 ];
-
-export const registerCommands = async () => {
-  const url = `https://discord.com/api/v8/applications/${process.env.DISCORD_ID}/commands`;
-
-  for (const json of commandList) {
-    const headers = {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bot ${process.env.DISCORD_TOKEN}`,
-      },
-      body: JSON.stringify(json),
-    };
-    const res = await fetch(url, headers);
-    if (res.status !== 200) {
-      console.error(
-        `Error in registering commands, status: ${res.status}, status text: ${res.statusText}`
-      );
-    }
-  }
-};
