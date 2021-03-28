@@ -29,6 +29,6 @@ export const execute = async (msg, args, api) => {
   await sendClanTable(msg, cmd.clan, true);
 };
 
-const argsRule = ["#TAGPLAYER", "#TAGCLAN"];
+const argsRule = ["##TAGCLAN", "#TAGPLAYER"];
 export const name = "admin-account-secondario";
 export const aliases = ["admin-secondario", "account-secondario-admin"];

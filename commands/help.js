@@ -32,6 +32,7 @@ export const execute = async (message) => {
 export const helpCommands = [
   `:arrow_forward: \`${process.env.PREFIX}aggiungi #ABCDEFGH\` iscrive il player al torneo`,
   `:arrow_forward: \`${process.env.PREFIX}rimuovi #ABCDEFGH\` disiscrive il player dal torneo`,
-  `:white_circle: \`${process.env.PREFIX}account-secondario #ABCDEFGH\` imposta l'acocunt come profilo secondario (profilo mulinello)`,
-  `:ok: \`${process.env.PREFIX}conferma\` conferma l'iscrizione dei player e del profilo secondario al torneo, una volta confermato non sarà più possibile cambiare i player e sarà necessario contattare gli admin`,
+  `:arrow_forward: \`${process.env.PREFIX}account-secondario #ABCDEFGH\` aggiunge/sovrascrive il profilo secondario del clan`,
+  `:arrow_forward: \`${process.env.PREFIX}conferma\` conferma l'iscrizione dei player al torneo (5 player richiesti)`,
+  `:warning: Una volta confermato il clan NON sarà più possibile cambiare i player`,
 ];

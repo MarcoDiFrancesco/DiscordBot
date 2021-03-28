@@ -109,7 +109,7 @@ export default class Command {
    */
   publicChatCheck() {
     if (!this.msg.guild) {
-      this.send(`:x: Non utilizzare questo nella chat privata`);
+      this.send(`:x: Non utilizzare questo comando nella chat privata`);
       return true;
     }
   }

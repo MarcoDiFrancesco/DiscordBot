@@ -1,5 +1,6 @@
 import Command from "../classes/Command.js";
 import { sendClanList } from "./mostra-clan.js";
+import exportSpreadsheet from "../classes/export-spreadsheet.js";
 
 export const execute = async (msg, args, api) => {
   const cmd = new Command(name, argsRule, msg, args, api);
@@ -18,20 +19,16 @@ export const execute = async (msg, args, api) => {
     return;
   }
 
-  
-  if(cmd.clan.confirmed) {
-    await cmd.send(
-      `:white_check_mark: È stata tolta la conferma dal clan`
-    );
-    cmd.clan.confirmed = false
+  if (cmd.clan.confirmed) {
+    await cmd.send(`:white_check_mark: È stata tolta la conferma dal clan`);
+    cmd.clan.confirmed = false;
   } else {
-    await cmd.send(
-      `:white_check_mark: Il clan è stato confermato`
-    );
-    cmd.clan.confirmed = true
+    await cmd.send(`:white_check_mark: Il clan è stato confermato`);
+    cmd.clan.confirmed = true;
   }
-  await cmd.clan.save()
+  await cmd.clan.save();
   await sendClanList(cmd);
+  await exportSpreadsheet();
 };
 
 const argsRule = ["#TAGCLAN"];

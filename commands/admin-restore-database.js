@@ -8,8 +8,8 @@ export const execute = async (msg, args, api) => {
   if (cmd.adminCheck()) return;
 
   const [player, clans] = JSON.parse(args.join(" "));
-  Clan.insertMany(clans, { ordered: true })
-  Player.insertMany(player, { ordered: true });
+  Clan.insertMany(clans, { ordered: false })
+  Player.insertMany(player, { ordered: false });
 
   await cmd.send(":white_check_mark: Database ripristinato");
   await sendClanList(cmd);

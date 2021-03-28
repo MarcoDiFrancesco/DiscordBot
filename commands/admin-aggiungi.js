@@ -26,13 +26,13 @@ export const execute = async (msg, args, api) => {
 export const adminAggiungiChecks = async (cmd) => {
   if (cmd.adminCheck()) return true;
   if (cmd.argsCheck()) return true;
-  cmd.playerTag = cmd.args[0];
-  cmd.clanTag = cmd.args[1];
+  cmd.clanTag = cmd.args[0];
+  cmd.playerTag = cmd.args[1];
   if (cmd.cleanTags()) return true;
   await cmd.getPlayer();
-  console.log("After get player")
+  console.log("After get player");
   await cmd.getClan();
-  console.log("After get clan")
+  console.log("After get clan");
   if (!cmd.clan) {
     await cmd.send(
       `:x: Il clan con tag #${cmd.clanTag} non è iscitto al torneo`
@@ -51,6 +51,6 @@ export const adminAggiungiChecks = async (cmd) => {
   if (await cmd.getPlayerApi()) return true;
 };
 
-const argsRule = ["#TAGPLAYER", "#TAGCLAN"];
+const argsRule = ["#TAGCLAN", "#TAGPLAYER"];
 export const name = "admin-aggiungi";
 export const aliases = ["aggiungi-admin"];
