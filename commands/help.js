@@ -1,38 +1,32 @@
-import Clan from "../models/Clan.js";
-import { sendClanTable } from "./mostra.js";
+import { mostraClan } from "./mostra.js";
+import Command from "../classes/Command.js";
 
-export const name = "help";
-export const aliases = ["aiuto", "comandi"];
-export const execute = async (message) => {
-  // Direct message
-  if (!message.guild) {
-    let clan = await Clan.findOne({
-      representatives: { $in: [message.author.id] },
-    });
-    if (!clan) {
-      // The user is trying to subscribe the clan in the private chat
-      const text = [
-        `:x: Iscrivi il tuo clan nella **Chat globale** utilizzando il comando \`${process.env.PREFIX}iscrivi ED71G8Y9L\``,
-      ];
-      await message.author.send(text);
-      return;
-    }
-    await sendClanTable(message, clan);
-    await message.author.send(helpCommands);
+export const execute = async (msg, args, api) => {
+  const cmd = new Command(name, argsRule, msg, args, api);
+  if (cmd.argsCheck()) return;
+
+  // Message in group chat
+  if (msg.guild) {
+    const text = `Utilizza il comando  \`${process.env.PREFIX}iscrivi TAGCLAN\`  per iniziare l'iscrizione`;
+    await cmd.send(text);
     return;
   }
 
-  const text = [
-    `:boom: Sono il bot per le iscrizioni ai tornei MPM :boom:`,
-    `Utilizza il comando  \`${process.env.PREFIX}iscrivi ED71G8Y9L\`  specificando il tag del tuo clan per iniziare l'iscrizione`,
-  ];
-  await message.channel.send(text);
+  if (await cmd.getClanThis()) return;
+
+  // User subscribed a clan
+  await cmd.send(helpCommands);
+  mostraClan(cmd);
 };
 
 export const helpCommands = [
-  `:arrow_forward: \`${process.env.PREFIX}aggiungi #ABCDEFGH\` iscrive il player al torneo`,
-  `:arrow_forward: \`${process.env.PREFIX}rimuovi #ABCDEFGH\` disiscrive il player dal torneo`,
-  `:arrow_forward: \`${process.env.PREFIX}account-secondario #ABCDEFGH\` aggiunge/sovrascrive il profilo secondario del clan`,
+  `:arrow_forward: \`${process.env.PREFIX}aggiungi TAGPLAYER\` iscrive il player al torneo`,
+  `:arrow_forward: \`${process.env.PREFIX}rimuovi TAGPLAYER\` disiscrive il player dal torneo`,
+  `:arrow_forward: \`${process.env.PREFIX}account-secondario TAGPLAYER\` aggiunge/sovrascrive il profilo secondario del clan`,
   `:arrow_forward: \`${process.env.PREFIX}conferma\` conferma l'iscrizione dei player al torneo (5 player richiesti)`,
-  `:warning: Una volta confermato il clan NON sarà più possibile cambiare i player`,
+  `:warning: Una volta confermato il clan NON sarà più possibile modificare i player`,
 ];
+
+const argsRule = [];
+export const name = "help";
+export const aliases = ["aiuto", "comandi"];

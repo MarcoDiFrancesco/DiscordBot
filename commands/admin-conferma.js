@@ -1,5 +1,5 @@
 import Command from "../classes/Command.js";
-import { sendClanList } from "./mostra-clan.js";
+import { mostraClans, mostraClan } from "./mostra.js";
 import exportSpreadsheet from "../classes/export-spreadsheet.js";
 
 export const execute = async (msg, args, api) => {
@@ -8,17 +8,14 @@ export const execute = async (msg, args, api) => {
   if (cmd.argsCheck()) return;
   cmd.clanTag = args[0];
   if (cmd.cleanTags()) return;
-
   await cmd.getClan();
-
   if (!cmd.clan) {
     await cmd.send(
       `:x: Il clan con tag #${cmd.clanTag} non è iscitto al torneo`
     );
-    await sendClanList(cmd);
+    await mostraClans(cmd);
     return;
   }
-
   if (cmd.clan.confirmed) {
     await cmd.send(`:white_check_mark: È stata tolta la conferma dal clan`);
     cmd.clan.confirmed = false;
@@ -27,10 +24,10 @@ export const execute = async (msg, args, api) => {
     cmd.clan.confirmed = true;
   }
   await cmd.clan.save();
-  await sendClanList(cmd);
-  await exportSpreadsheet();
+  await mostraClan(cmd, true);
+  exportSpreadsheet();
 };
 
 const argsRule = ["#TAGCLAN"];
 export const name = "admin-conferma";
-export const aliases = ["conferma-admin"];
+export const aliases = ["conferma-admin", "admin-rimuovi-conferma"];

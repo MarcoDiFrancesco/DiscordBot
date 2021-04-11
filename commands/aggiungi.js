@@ -1,101 +1,71 @@
 import Player from "../models/Player.js";
+import { mostraClan } from "./mostra.js";
+import Command from "../classes/Command.js";
 import Clan from "../models/Clan.js";
-import { sendClanTable } from "./mostra.js";
 
-export const execute = async (message, args, api) => {
-  const clan = await Clan.findOne({
-    representatives: { $in: [message.author.id] },
-  });
-  let playerTag = args[0];
-  if (await aggiungiChecks(message, args, clan, playerTag)) {
-    return;
-  }
-  playerTag = playerTag.toUpperCase();
-  if (playerTag.startsWith("#")) {
-    playerTag = playerTag.substring(1);
-  }
-  let player = await Player.findOne({ tag: playerTag });
-  if (player) {
-    if (String(player.clan) === String(clan._id)) {
-      await message.author.send(`:x: Hai già aggiunto questo player`);
-      await sendClanTable(message, clan);
+export const execute = async (msg, args, api) => {
+  const cmd = new Command(name, argsRule, msg, args, api);
+  if (await aggiungiChecks(cmd)) return;
+  // Player in database
+  if (cmd.player) {
+    if (String(cmd.player.clan) === String(cmd.clan._id)) {
+      // Player found in clan but secondary
+      if (!cmd.player.primary) {
+        await cmd.send(
+          `:x: Questo player è impostato come player secondario, se vuoi impostarlo come primario devi prima rimuoverlo`
+        );
+        await mostraClan(cmd);
+        return;
+      }
+      await cmd.send(`:x: Hai già aggiunto questo player`);
+      await mostraClan(cmd);
       return;
     }
-    await message.author.send(
-      `:x: Il player è già stato aggiunto in un altro clan`
-    );
-    await sendClanTable(message, clan);
+    // Needed because player.clan just contains ID
+    let clan = await Clan.findOne({ _id: cmd.player.clan });
+    await cmd.send(`:x: Il player è già stato aggiunto dal clan #${clan.tag}`);
+    await mostraClan(cmd);
     return;
   }
-
-  let [status, apiPlayer] = await api.getPlayer(playerTag);
-  if (status === 404) {
-    await message.author.send(`:x: Il player con tag #${playerTag} non esiste`);
-    await sendClanTable(message, clan);
+  let players = await Player.find({ clan: cmd.clan });
+  if (players.length > 10) {
+    await cmd.send(`:x: Hai già inserito il numero massimo di partecipanti`);
+    await mostraClan(cmd);
     return;
   }
-  if (status !== 200) {
-    console.error("COC API key not accepted");
-    await message.author.send(
-      ":exclamation: C'è stato un problema nei nostri server, contatta gentilmente gli admin :exclamation:"
-    );
-    return;
-  }
-  const playerName = apiPlayer.name;
-  player = new Player({ tag: playerTag, name: playerName, clan: clan });
+  if (await cmd.getPlayerApi()) return true;
+  let player = new Player({
+    tag: cmd.playerTag,
+    name: cmd.playerApi.name,
+    clan: cmd.clan,
+  });
   await player.save();
-  await message.author.send(
+  await cmd.send(
     `:white_check_mark: Aggiunto **${player.name}** (${player.tag})`
   );
-  await sendClanTable(message, clan);
+  await mostraClan(cmd);
 };
 
-export const aggiungiChecks = async (message, args, clan, playerTag) => {
-  let exapleMessage = `Scrivi ad esempio \`${process.env.PREFIX}${name} #TAGPLAYER\``;
-  if (message.guild) {
-    await message.channel.send(`:x: Non utilizzare questo comando fuori dalla chat privata`);
-    return true;
-  }
-  if (args.length < 1) {
-    message.author.send(
-      `:x: Non hai specificato il tag di alcun player! ${exapleMessage}`
-    );
-    return true;
-  }
-  if (args.length > 1) {
-    message.author.send(
-      `:x: Hai specificato troppi argomenti! ${exapleMessage}`
-    );
-    return true;
-  }
-  playerTag = playerTag.toUpperCase();
-  if (playerTag.startsWith("#")) {
-    playerTag = playerTag.substring(1);
-  }
-  if (playerTag && (playerTag.length < 6 || playerTag.length > 10)) {
-    await message.author.send(`:x: Il tag di questo player non esiste!`);
-    await sendClanTable(message, clan);
-    return true;
-  }
-  // Check if tag contains non-correct characters
-  if (!/^[0-9a-zA-Z]+$/.test(playerTag)) {
-    message.author.send(`:x: Inserisci solo lettere e numeri come tag clan`);
-    return true;
-  }
-  if (!clan) {
-    message.author.send(
-      `:x: Non hai ancora iscritto un clan! Utilizza il comando \`${process.env.PREFIX}iscrivi F3893839A\` nella chat globale per iscriverne uno`
-    );
-    return true;
-  }
-  if (clan.confirmed) {
-    message.author.send(
+/**
+ * Checks used for aggiungi, account-secondario, rimuovi
+ * @returns true if error
+ */
+export const aggiungiChecks = async (cmd) => {
+  if (cmd.privateChatCheck()) return true;
+  if (cmd.argsCheck()) return true;
+  cmd.playerTag = cmd.args[0];
+  if (cmd.cleanTags()) return true;
+  await cmd.getPlayer();
+  if (await cmd.getClanThis()) return true;
+  if (cmd.clan.confirmed) {
+    cmd.send(
       ":x: Il clan è già stato confermato, se vuoi modificare i player contatta gli admin"
     );
-    await sendClanTable(message, clan);
+    await mostraClan(cmd);
     return true;
   }
 };
 
+const argsRule = ["#TAGPLAYER"];
 export const name = "aggiungi";
 export const aliases = [];

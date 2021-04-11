@@ -1,6 +1,6 @@
 import Player from "../models/Player.js";
 import Clan from "../models/Clan.js";
-import { sendClanTable } from "./mostra.js";
+import { mostraClan } from "./mostra.js";
 import Command from "../classes/Command.js";
 
 export const execute = async (msg, args, api) => {
@@ -9,23 +9,19 @@ export const execute = async (msg, args, api) => {
   if (cmd.argsCheck()) return;
   cmd.playerTag = args[0];
   if (cmd.cleanTags()) return;
-
   await cmd.getPlayer();
-
   if (!cmd.player) {
     cmd.send(`:x: Questo player non è iscritto ad alcun clan`);
     return;
   }
-
-  const clan = await Clan.findOne({ _id: cmd.player.clan });
+  cmd.clan = await Clan.findOne({ _id: cmd.player.clan });
   await Player.deleteOne({ tag: cmd.player.tag });
-
   await cmd.send(
-    `:white_check_mark: Rimosso **${cmd.player.name}** (${cmd.player.tag}) dal clan **${clan.name}** (${clan.tag})`
+    `:white_check_mark: Rimosso **${cmd.player.name}** (${cmd.player.tag}) dal clan **${cmd.clan.name}** (${cmd.clan.tag})`
   );
-  await sendClanTable(msg, clan, true);
+  await mostraClan(cmd, true);
 };
 
-const argsRule = ["#TAGCLAN"];
+const argsRule = ["#TAGPLAYER"];
 export const name = "admin-rimuovi";
 export const aliases = ["rimuovi-admin"];

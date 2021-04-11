@@ -1,3 +1,4 @@
+import { mostraClan } from "../commands/mostra.js";
 import Clan from "../models/Clan.js";
 import Player from "../models/Player.js";
 
@@ -9,11 +10,31 @@ export default class Command {
     this.argsRule = argsRule;
     // Discord message object
     this.msg = msg;
-    // Need for lenght checks
+    // Needed for lenght checks
     // e.g. ["#ABCDEF", "#ABCDEF"]
     this.args = args;
     // COC API object
     this.api = api;
+  }
+
+  /**
+   * User is trying to subscribe the clan in the direct message
+   */
+  async getClanThis() {
+    // Check if this function was already called
+    if (this.clan) {
+      console.error("Function called twice, this shouldn't happen");
+      return;
+    }
+    this.clan = await Clan.findOne({
+      representatives: { $in: [this.msg.author.id] },
+    });
+    if (!this.clan) {
+      await this.send(
+        `:x: Non hai ancora iscritto un clan, utilizza il comando \`${process.env.PREFIX}iscrivi TAGCLAN\` nella chat globale`
+      );
+      return true;
+    }
   }
 
   /**
@@ -23,7 +44,7 @@ export default class Command {
   async getClan() {
     // Check if this function was already called
     if (this.clan) {
-      console.error("Function called 2 times, this shouldn't happen");
+      console.error("Function called twice, this shouldn't happen");
       return;
     }
     this.clan = await Clan.findOne({ tag: this.clanTag });
@@ -36,7 +57,7 @@ export default class Command {
   async getPlayer() {
     // Check if this function was already called
     if (this.player) {
-      console.error("Function called 2 times, this shouldn't happen");
+      console.error("Function called twice, this shouldn't happen");
       return;
     }
     this.player = await Player.findOne({ tag: this.playerTag });
@@ -69,7 +90,7 @@ export default class Command {
   async checkApiStatus(status) {
     if (status === 404) {
       await this.send(`:x: Il player con tag #${this.playerTag} non esiste`);
-      await sendClanTable(msg, this.clan, true);
+      await mostraClan(this);
       return true;
     }
     if (status !== 200) {
@@ -86,8 +107,10 @@ export default class Command {
    */
   async send(text) {
     if (this.msg.guild) {
+      // Direct
       await this.msg.channel.send(text);
     } else {
+      // Group
       await this.msg.author.send(text);
     }
   }

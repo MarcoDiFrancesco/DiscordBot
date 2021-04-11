@@ -1,11 +1,43 @@
 import Player from "../models/Player.js";
 import Clan from "../models/Clan.js";
+import Command from "../classes/Command.js";
 
-const sendClanTable = async (message, clan, isMostraCommand) => {
-  const players = await Player.find({ clan: clan });
-  // TODO: get it from somewhere
+export const execute = async (msg, args, api) => {
+  if (args.length === 1) {
+    const argsRule = ["#TAGCLAN"];
+    const cmd = new Command(name, argsRule, msg, args, api);
+    if (cmd.argsCheck()) return;
+    cmd.clanTag = cmd.args[0];
+    if (cmd.cleanTags()) return true;
+    await cmd.getClan();
+    mostraClan(cmd, true);
+  } else {
+    const argsRule = [];
+    const cmd = new Command(name, argsRule, msg, args, api);
+    if (cmd.argsCheck()) return;
+    mostraClans(cmd);
+  }
+};
+
+export const mostraClan = async (cmd, isMostraCommand, toPrivateChat) => {
+  // Check used only with isMostraCommand
+  if (!cmd.clan) {
+    if (!isMostraCommand) {
+      console.error(
+        "Clan not found when not in isMostraCommand, this should never happen"
+      );
+    }
+    await cmd.send(
+      `:x: Il clan con tag #${cmd.clanTag} non è iscitto al torneo`
+    );
+    await mostraClans(cmd);
+    return true;
+  }
+
+  const players = await Player.find({ clan: cmd.clan });
+
   let confirmedEmoji, confirmedText, footerText, color;
-  if (clan.confirmed) {
+  if (cmd.clan.confirmed) {
     confirmedEmoji = ":white_check_mark:";
     confirmedText = "Sì";
     footerText = `Il clan è stato confermato`;
@@ -17,37 +49,31 @@ const sendClanTable = async (message, clan, isMostraCommand) => {
     color = "0x0099ff";
   }
 
+  if (isMostraCommand) {
+    footerText = ``;
+  }
+
   let description;
   if (isMostraCommand) {
-    description = `:trophy: Clan: ${clan.name} (#${clan.tag})\n${confirmedEmoji} Partecipazione confermata: ${confirmedText}`;
+    description = `:trophy: Clan: ${cmd.clan.name} (#${cmd.clan.tag})\n${confirmedEmoji} Partecipazione confermata: ${confirmedText}`;
   } else {
-    description = `:trophy: Clan: ${clan.name}\n${confirmedEmoji} Partecipazione confermata: ${confirmedText}`;
+    description = `:trophy: Clan: ${cmd.clan.name}\n${confirmedEmoji} Partecipazione confermata: ${confirmedText}`;
   }
 
   const embed = {
     inline: true,
     color: color,
-    // title: `Iscrizione al torneo ${eventName}`,
-    // author: {
-    // name: "MPM bot",
-    // icon_url: "https://i.imgur.com/OyUTcF7.png",
-    // url: 'https://discord.js.org',
-    // },
     description: description,
-    // thumbnail: {
-    //   url: "https://i.imgur.com/OyUTcF7.png",
-    // },
-    fields: getMainText(players, clan, isMostraCommand),
-    // timestamp: new Date(),
+    fields: getMainText(players, cmd.clan, isMostraCommand),
     footer: {
       text: footerText,
     },
   };
-  if (message.guild) {
-    await message.channel.send({ embed: embed })
-  } else {
-    await message.author.send({ embed: embed });
+  if (toPrivateChat) {
+    await cmd.msg.author.send({ embed: embed });
+    return;
   }
+  await cmd.send({ embed: embed });
 };
 
 const getMainText = (players, clan, isMostraCommand) => {
@@ -76,18 +102,18 @@ const getMainText = (players, clan, isMostraCommand) => {
   }
   let counter = 0;
   for (const number of numbers) {
-    let str = "";
-    str += number;
+    let str = number;
     if (playersPrimary[counter]) {
-      str += `⠀\`${playersPrimary[counter].tag}\` `;
-      for (let i = 0; i < 9 - playersPrimary[counter].tag.length; i++) {
-        str += "  ";
+      let tag = playersPrimary[counter].tag;
+      str += `⠀\`${tag}\`⠀`;
+      for (let i = 0; i < 9 - tag.length; i++) {
+        str += "⠀";
       }
       let name = playersPrimary[counter].name;
-      if (name.length > 9) {
-        name = name.substring(0, 9);
-        name += "..";
-      }
+      // if (name.length > 9) {
+      //   name = name.substring(0, 9);
+      //   name += "..";
+      // }
       str += name;
     } else {
       str += "⠀-⠀⠀⠀⠀⠀⠀⠀-";
@@ -101,7 +127,7 @@ const getMainText = (players, clan, isMostraCommand) => {
     values.push(":white_circle:⠀-⠀⠀⠀⠀⠀⠀⠀-");
   }
   for (const player of playersSecondary) {
-    values.push(`:white_circle:⠀\`${player.tag}\` ${player.name}`);
+    values.push(`:white_circle:⠀\`${player.tag}\`⠀${player.name}`);
   }
   if (!isMostraCommand) {
     if (!clan.confirmed) {
@@ -114,9 +140,10 @@ const getMainText = (players, clan, isMostraCommand) => {
       values.push(
         `:white_circle: \`${process.env.PREFIX}account-secondario PLAYERTAG\``
       );
-      if (players.length < 5) {
+      const minPlayers = 5;
+      if (playersPrimary.length < minPlayers) {
         values.push(
-          `:ok: ~~\`${process.env.PREFIX}conferma\`~~ (5 player richiesti)`
+          `:ok: ~~\`${process.env.PREFIX}conferma\`~~ (${minPlayers} player richiesti)`
         );
       } else {
         values.push(`:ok: \`${process.env.PREFIX}conferma\``);
@@ -137,41 +164,54 @@ const getMainText = (players, clan, isMostraCommand) => {
   ];
 };
 
-const execute = async (message, args) => {
-  const exapleMessage = `Scrivi ad esempio \`${process.env.PREFIX}${name} #TAGPLAYER\``;
-  if (args.length < 1) {
-    message.reply(
-      `:x: Non hai specificato il tag di alcun clan! ${exapleMessage}`
-    );
-    return;
+export const mostraClans = async (cmd) => {
+  const clans = await Clan.find();
+
+  let values = [];
+  if (!clans.length) {
+    values = ["⠀⠀⠀-⠀⠀⠀⠀⠀⠀⠀-"];
   }
-  if (args.length > 1) {
-    message.reply(`hai specificato troppi argomenti! ${exapleMessage}`);
-    return;
+
+  let confirmedCounter = 0;
+  for (const clan of clans) {
+    if (clan.confirmed) {
+      confirmedCounter += 1;
+    }
   }
-  let clanTag = args[0];
-  clanTag = clanTag.toUpperCase();
-  if (clanTag.startsWith("#")) {
-    clanTag = clanTag.substring(1);
+
+  for (const clan of clans) {
+    let str = "";
+    let statusEmoji;
+    if (clan.confirmed) {
+      statusEmoji = ":white_check_mark:";
+    } else {
+      statusEmoji = ":x:";
+    }
+    str += `${statusEmoji}⠀\`${clan.tag}\`⠀`;
+    for (let i = 0; i < 9 - clan.tag.length; i++) {
+      str += "⠀";
+    }
+    // if (clan.name.length > 9) {
+    //   clan.name = clan.name.substring(0, 9);
+    //   clan.name += "..";
+    // }
+    str += clan.name;
+    values.push(str);
   }
-  if (clanTag && (clanTag.length < 6 || clanTag.length > 10)) {
-    message.reply(`:x: Il tag di questo clan non esiste!`);
-    return;
-  }
-  // Check if tag contains non-correct characters
-  if (!/^[0-9a-zA-Z]+$/.test(clanTag)) {
-    message.reply(`:x: Inserisci solo lettere e numeri come tag clan`);
-    return;
-  }
-  const clan = await Clan.findOne({ tag: clanTag });
-  if (!clan) {
-    message.reply(`:x: Il clan con tag #${clanTag} non è registrato al torneo!`);
-    return;
-  }
-  sendClanTable(message, clan, true);
+  const fields = [
+    {
+      name: "⠀⠀⠀Tag⠀⠀⠀⠀⠀Nome",
+      value: values,
+    },
+  ];
+  const embed = {
+    inline: true,
+    color: "0x0099ff",
+    description: `:trophy: Clan iscritti: ${clans.length}\n:white_check_mark: Confermati: ${confirmedCounter}`,
+    fields: fields,
+  };
+  await cmd.send({ embed: embed });
 };
 
 export const name = "mostra";
-export const aliases = [];
-export { execute };
-export { sendClanTable };
+export const aliases = ["lista", "lista-clan", "clan", "mostra-clan"];

@@ -1,53 +1,48 @@
-import Clan from "../models/Clan.js";
 import Player from "../models/Player.js";
-import { sendClanTable } from "./mostra.js";
+import { mostraClan } from "./mostra.js";
+import Command from "../classes/Command.js";
+import exportSpreadsheet from "../classes/export-spreadsheet.js";
 
-export const name = "conferma";
-export const aliases = ["confirm"];
-export const execute = async (message) => {
-  if (message.guild) {
-    await message.channel.send(
-      `:x: Non utilizzare questo comando fuori dalla chat privata del bot`
+export const execute = async (msg, args, api) => {
+  const cmd = new Command(name, argsRule, msg, args, api);
+  if (cmd.privateChatCheck()) return;
+  if (cmd.argsCheck()) return;
+  if (await cmd.getClanThis()) return true;
+  if (cmd.clan.confirmed) {
+    cmd.send(
+      ":x: Il clan è già stato confermato, se vuoi modificare i player contatta gli admin"
     );
-    return;
+    await mostraClan(cmd);
+    return true;
   }
-  let clan = await Clan.findOne({
-    representatives: { $in: [message.author.id] },
-  });
-  // if (clan.confirmed) {
-  //   await message.author.send(
-  //     ":x: Il clan è già stato confermato, se vuoi modificare i player contatta gli admin"
-  //   );
-  //   await sendClanTable(message, clan);
-  //   return;
-  // }
-
-  if (!clan) {
-    // The user is trying to subscribe the clan in the private chat
-    await message.author.send(
-      `:x: Iscrivi il tuo clan nella **Chat globale** utilizzando il comando \`${process.env.PREFIX}iscrivi ED71G8Y9L\``
-    );
-    return;
-  }
-  const players = await Player.find({ clan: clan });
+  const players = await Player.find({ clan: cmd.clan, primary: true });
   const minPlayers = 5;
   if (players.length < minPlayers) {
-    await message.author.send(
+    await cmd.send(
       `:x: Devono esserci almeno ${minPlayers} player prima di confermare il clan`
     );
-    await sendClanTable(message, clan);
+    await mostraClan(cmd);
+    return;
+  }
+  // Check account secondario
+  let thereIsAccountSecondario = false;
+  for (const player in players) {
+    if (!player.primary) {
+      thereIsAccountSecondario = true;
+    }
+  }
+  if (!thereIsAccountSecondario) {
+    await cmd.send(`:x: L'account secondario non è presente`);
+    await mostraClan(cmd);
     return;
   }
 
-  if (clan.confirmed) {
-    await message.channel.send(
-      ":x: Questo clan è già stato confermato per il torneo, se vuoi modificare i player contatta gli admin"
-    );
-    await sendClanTable(message, clan);
-    return;
-  }
-  clan.confirmed = true;
-  await clan.save();
-  await sendClanTable(message, clan);
-  return;
+  cmd.clan.confirmed = true;
+  await cmd.clan.save();
+  await mostraClan(cmd);
+  exportSpreadsheet();
 };
+
+const argsRule = [];
+export const name = "conferma";
+export const aliases = ["confirm"];

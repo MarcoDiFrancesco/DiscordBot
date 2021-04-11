@@ -9,6 +9,7 @@ export const execute = async (msg, args, api) => {
   const text = [
     `:arrow_forward: \`${process.env.PREFIX}admin-aggiungi #TAGCLAN #TAGPLAYER\` iscrive player al clan`,
     `:arrow_forward: \`${process.env.PREFIX}admin-rimuovi #TAGPLAYER\` rimuove il player primario o secondario dal clan in cui è iscritto. Il clan non è necessario dato che 1 player può essere iscritto a 1 solo clan.`,
+    `:arrow_forward: \`${process.env.PREFIX}admin-rimuovi-clan #TAGCLAN\` rimuove il clan, ma non tutti i player iscritti a esso.`,
     `:arrow_forward: \`${process.env.PREFIX}admin-account-secondario #TAGCLAN #TAGPLAYER\` imposta l'acocunt come profilo secondario al clan`,
     `:arrow_forward: \`${process.env.PREFIX}admin-conferma #TAGCLAN\` conferma l'iscrizione del clan. Il clan può essere confermato dagli admin anche se non ha il minimo numero di player richiesto (dal comando \`${process.env.PREFIX}conferma #TAGCLAN\`)`,
     `:arrow_forward: \`${process.env.PREFIX}admin-reset-database\` elimina tutti i clan e tutti i player dal database`,

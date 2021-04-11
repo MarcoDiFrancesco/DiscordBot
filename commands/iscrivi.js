@@ -1,96 +1,50 @@
 import Clan from "../models/Clan.js";
-import { sendClanTable } from "./mostra.js";
+import { mostraClan } from "./mostra.js";
+import Command from "../classes/Command.js";
 
-const execute = async (message, args, api) => {
-  if (!message.guild) {
-    await message.author.send(
-      ":x: Utilizza questo comando nella chat globale!"
-    );
-    return;
-  }
-  let exapleMessage = `Scrivi ad esempio \`${process.env.PREFIX}iscrivi #TAGCLAN\``;
-  if (args.length < 1) {
-    message.reply(`:x: Non hai specificato il tag del clan! ${exapleMessage}`);
-    return;
-  }
-  if (args.length > 1) {
-    message.reply(`:x: Hai specificato troppi argomenti! ${exapleMessage}`);
-    return;
-  }
-
-  let clanTag = args[0].toUpperCase();
-  if (clanTag.startsWith("#")) {
-    clanTag = clanTag.substring(1);
-  }
-  // Check if tag contains non-correct characters
-  if (!/^[0-9a-zA-Z]+$/.test(clanTag)) {
-    message.reply(`:x: Inserisci solo lettere e numeri come tag clan`);
-    return true;
-  }
+export const execute = async (msg, args, api) => {
+  const cmd = new Command(name, argsRule, msg, args, api);
+  console.log("args", args);
+  if (cmd.publicChatCheck()) return true;
+  if (cmd.argsCheck()) return true;
+  cmd.clanTag = cmd.args[0];
+  if (cmd.cleanTags()) return true;
+  await cmd.getClan();
 
   // Check if clan was subscribed by someone else
-  let clan = await Clan.findOne({ tag: clanTag });
-  if (clan) {
-    if (clan.representatives.includes(message.author.id)) {
-      await message.reply(
-        `:x: Stai già iscrivendo questo clan, utilizza la chat privata per modificare i partecipanti`
+  if (cmd.clan) {
+    if (cmd.clan.representatives.includes(msg.author.id)) {
+      await cmd.send(
+        `:x: Stai già iscrivendo il clan **${cmd.clan.name}**, utilizza la chat privata per modificare i partecipanti`
       );
-      await message.author.send(
+      await msg.author.send(
         ":white_check_mark: Utilizza questa chat per modificare i player"
       );
+      mostraClan(cmd, false, true);
       return;
     }
-    return message.reply(
-      `:x: Il clan è già stato iscritto da <@${clan.representatives[0]}>`
-    );
-  }
-
-  // Check if user has subscribed another clan
-  clan = await Clan.findOne({ representatives: { $in: [message.author.id] } });
-  if (clan) {
-    await message.reply(
-      `:x: Stai già registrando il clan **${clan.name}** (#${clan.tag})`
-    );
-    await message.author.send(
-      ":white_check_mark: Utilizza questa chat per modificare i player"
+    cmd.send(
+      `:x: Il clan è già stato iscritto da <@${cmd.clan.representatives[0]}>`
     );
     return;
   }
 
-  // This check makes sense not in the top
-  if (clanTag.length < 6 || clanTag.length > 10) {
-    message.reply(`:x: Il tag di questo clan non esiste!`);
-    return true;
-  }
+  if (await cmd.getClanApi()) return true;
 
-  let [status, apiClan] = await api.getClan(clanTag);
-  if (status === 404) {
-    await message.reply(`:x: Il clan con tag #${clanTag} non esiste`);
-    return;
-  }
-  if (status !== 200) {
-    console.error("COC API key not accepted");
-    await message.reply(
-      ":exclamation: C'è stato un problema nei nostri server, contatta gentilmente gli admin :exclamation:"
-    );
-    return;
-  }
-  const clanName = apiClan.name;
-  clan = new Clan({
-    tag: clanTag,
-    name: clanName,
-    representatives: [message.author.id],
+  cmd.clan = new Clan({
+    tag: cmd.clanTag,
+    name: cmd.clanApi.name,
+    representatives: [msg.author.id],
   });
-  await clan.save();
-
-  await message.reply(
-    `:white_check_mark: Iscrivi il clan **${clanName}** nella nuova chat creata!`
+  await cmd.clan.save();
+  await cmd.send(
+    `:white_check_mark: Iscrivi il clan **${cmd.clanApi.name}** nella nuova chat creata!`
   );
-  await message.author.send(
-    `:fire: Benvenuto al toreo organizzato da MPM :fire:\nUtilizza i comandi scritti sotto per`
+  await msg.author.send(
+    `:fire: Benvenuto al toreo organizzato da MPM :fire:\nUtilizza i comandi scritti sotto per iscrivere il clan`
   );
-  await sendClanTable(message, clan);
+  mostraClan(cmd, false, true);
 };
+const argsRule = ["#TAGCLAN"];
 export const name = "iscrivi";
 export const aliases = ["iscrivo"];
-export { execute };

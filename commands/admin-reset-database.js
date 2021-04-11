@@ -2,7 +2,7 @@ import fs from "fs";
 import Command from "../classes/Command.js";
 import Clan from "../models/Clan.js";
 import Player from "../models/Player.js";
-import { sendClanList } from "./mostra-clan.js";
+import { mostraClans } from "./mostra.js";
 
 export const execute = async (msg, args, api) => {
   const cmd = new Command(name, argsRule, msg, args, api);
@@ -17,7 +17,7 @@ export const execute = async (msg, args, api) => {
   await Clan.collection.deleteMany();
 
   await cmd.send(":white_check_mark: Database ripulito");
-  await sendClanList(cmd);
+  await mostraClans(cmd);
 };
 
 const argsRule = [];

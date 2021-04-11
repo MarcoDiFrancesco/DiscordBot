@@ -1,66 +1,55 @@
 import Clan from "../models/Clan.js";
 import Player from "../models/Player.js";
 import { aggiungiChecks } from "./aggiungi.js";
-import { sendClanTable } from "./mostra.js";
+import { mostraClan } from "./mostra.js";
+import Command from "../classes/Command.js";
 
-export const execute = async (message, args, api) => {
-  const clan = await Clan.findOne({
-    representatives: { $in: [message.author.id] },
-  });
-  let playerTag = args[0];
-  if (await aggiungiChecks(message, args, clan, playerTag)) {
+export const execute = async (msg, args, api) => {
+  const cmd = new Command(name, argsRule, msg, args, api);
+  if (await aggiungiChecks(cmd)) return;
+  // Player in database
+  if (cmd.player) {
+    if (String(cmd.player.clan) === String(cmd.clan._id)) {
+      // Player found in clan but primary
+      if (cmd.player.primary) {
+        await cmd.send(
+          `:x: Questo player è impostato come player primario, se vuoi impostarlo come secondario devi prima rimuoverlo`
+        );
+        await mostraClan(cmd);
+        return;
+      }
+      await cmd.send(
+        `:x: Hai già impostato questo player come player secondario`
+      );
+      await mostraClan(cmd);
+      return;
+    }
+    // Needed because player.clan just contains ID
+    let clan = await Clan.findOne({ _id: cmd.player.clan });
+    await cmd.send(`:x: Il player è già stato aggiunto dal clan #${clan.tag}`);
+    await mostraClan(cmd);
     return;
   }
-  playerTag = playerTag.toUpperCase();
-  if (playerTag.startsWith("#")) {
-    playerTag = playerTag.substring(1);
-  }
-  let player = await Player.findOne({ tag: playerTag });
+  if (await cmd.getPlayerApi()) return true;
+
+  let player = await Player.findOne({ clan: cmd.clan, primary: false });
   if (player) {
-    if (player.primary) {
-      await message.author.send(`:x: Questo player è impostato come player primario! Se vuoi impostarlo come secondario devi prima rimuoverlo`);
-      await sendClanTable(message, clan);
-      return;
-    }
-    if (String(player.clan) === String(clan._id)) {
-      await message.author.send(`:x: Hai già impostato questo player come player secondario!`);
-      await sendClanTable(message, clan);
-      return;
-    }
-    await message.author.send(
-      `:x: Il player è già stato aggiunto in un altro clan`
-    );
-    await sendClanTable(message, clan);
-    return;
-  }
-
-  let [status, apiPlayer] = await api.getPlayer(playerTag);
-  if (status === 404) {
-    await message.author.send(`:x: Il player con tag #${playerTag} non esiste`);
-    await sendClanTable(message, clan);
-    return;
-  }
-  if (status !== 200) {
-    console.error("COC API key not accepted");
-    await message.author.send(
-      ":exclamation: C'è stato un problema nei nostri server, contatta gentilmente gli admin :exclamation:"
-    );
-    return;
-  }
-  const playerName = apiPlayer.name;
-  player = await Player.findOne({ clan: clan, primary: false });
-  if (!player) {
-    player = new Player({ tag: playerTag, name: playerName, primary: false, clan: clan });
+    player.tag = cmd.playerTag;
+    player.name = cmd.playerApi.name;
   } else {
-    player.tag = playerTag
-    player.name = playerName
+    player = new Player({
+      tag: cmd.playerTag,
+      name: cmd.playerApi.name,
+      primary: false,
+      clan: cmd.clan,
+    });
   }
   await player.save();
-  await message.author.send(
-    `:white_check_mark: **${player.name}** (${player.tag}) impostato come player secondario`
+  await cmd.send(
+    `:white_check_mark: **${player.name}** impostato come player secondario`
   );
-  await sendClanTable(message, clan);
+  await mostraClan(cmd);
 };
-
+const argsRule = ["#TAGPLAYER"];
 export const name = "account-secondario";
 export const aliases = [];

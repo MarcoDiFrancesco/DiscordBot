@@ -1,12 +1,11 @@
 import Player from "../models/Player.js";
 import Clan from "../models/Clan.js";
-import { sendClanTable } from "./mostra.js";
 import Command from "../classes/Command.js";
-import { sendClanList } from "./mostra-clan.js";
+import { mostraClan, mostraClans } from "./mostra.js";
 
 export const execute = async (msg, args, api) => {
   const cmd = new Command(name, argsRule, msg, args, api);
-  if (await adminAggiungiChecks(cmd)) return true;
+  if (await adminAggiungiChecks(cmd)) return;
   let player = new Player({
     tag: cmd.playerTag,
     name: cmd.playerApi.name,
@@ -16,7 +15,7 @@ export const execute = async (msg, args, api) => {
   await cmd.send(
     `:white_check_mark: Aggiunto **${cmd.playerApi.name}** (${cmd.playerTag}) al clan **${cmd.clan.name}** (${cmd.clan.tag})`
   );
-  await sendClanTable(msg, cmd.clan, true);
+  await mostraClan(cmd, true);
 };
 
 /**
@@ -30,14 +29,10 @@ export const adminAggiungiChecks = async (cmd) => {
   cmd.playerTag = cmd.args[1];
   if (cmd.cleanTags()) return true;
   await cmd.getPlayer();
-  console.log("After get player");
   await cmd.getClan();
-  console.log("After get clan");
   if (!cmd.clan) {
-    await cmd.send(
-      `:x: Il clan con tag #${cmd.clanTag} non è iscitto al torneo`
-    );
-    await sendClanList(cmd);
+    await cmd.send(`:x: Il clan #${cmd.clanTag} non è iscitto al torneo`);
+    await mostraClans(cmd);
     return true;
   }
   if (cmd.player) {
