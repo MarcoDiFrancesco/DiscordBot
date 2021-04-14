@@ -41,7 +41,7 @@ export const execute = async (msg, args, api) => {
     `:white_check_mark: Iscrivi il clan **${cmd.clanApi.name}** nella nuova chat creata!`
   );
   await msg.author.send(
-    `:fire: Benvenuto al toreo organizzato da MPM :fire:\nUtilizza i comandi scritti sotto per iscrivere il clan`
+    `:fire: Benvenuto al torneo organizzato da MPM Community :fire:\nUtilizza i comandi scritti sotto per iscrivere il clan`
   );
   mostraClan(cmd, false, true);
 };
