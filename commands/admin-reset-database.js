@@ -12,7 +12,7 @@ export const execute = async (msg, args, api) => {
   const players = await Player.find();
   const clans = await Clan.find();
   const json = JSON.stringify([players, clans]);
-  fs.writeFileSync(`backup/${new Date().toISOString()}.json`, json);
+  fs.writeFileSync(`/tmp/${new Date().toISOString()}.json`, json);
   await Player.collection.deleteMany();
   await Clan.collection.deleteMany();
 
