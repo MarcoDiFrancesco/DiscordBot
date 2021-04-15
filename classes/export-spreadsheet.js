@@ -7,7 +7,7 @@ export default async () => {
 
   await doc.useServiceAccountAuth({
     client_email: process.env.GOOGLE_EMAIL,
-    private_key: process.env.GOOGLE_PRIVATE_KEY,
+    private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/gm, "\n"),
   });
   // Get data from sheet
   await doc.loadInfo();
