@@ -16,8 +16,9 @@ export const execute = async (msg, args, api) => {
   await Player.collection.deleteMany();
   await Clan.collection.deleteMany();
 
-  await cmd.send(":white_check_mark: Database ripulito");
+  await cmd.send(":white_check_mark: Database e Google Spreadsheet ripulito");
   await mostraClans(cmd);
+  exportSpreadsheet();
 };
 
 const argsRule = [];
