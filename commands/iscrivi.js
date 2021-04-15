@@ -4,11 +4,25 @@ import Command from "../classes/Command.js";
 
 export const execute = async (msg, args, api) => {
   const cmd = new Command(name, argsRule, msg, args, api);
-  console.log("args", args);
   if (cmd.publicChatCheck()) return true;
   if (cmd.argsCheck()) return true;
   cmd.clanTag = cmd.args[0];
   if (cmd.cleanTags()) return true;
+
+  // Check if user has subscribed another clan
+  const clan = await Clan.findOne({
+    representatives: { $in: [msg.author.id] },
+  });
+  if (clan) {
+    await cmd.send(
+      `:x: Stai già registrando il clan **${clan.name}** (#${clan.tag})`
+    );
+    await msg.author.send(
+      ":white_check_mark: Utilizza questa chat per modificare i player"
+    );
+    return;
+  }
+
   await cmd.getClan();
 
   // Check if clan was subscribed by someone else
