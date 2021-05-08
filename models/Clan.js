@@ -8,6 +8,7 @@ const Clan = mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  logo: String,
 });
 
 export default mongoose.model("Clan", Clan);

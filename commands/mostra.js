@@ -68,6 +68,9 @@ export const mostraClan = async (cmd, isMostraCommand, toPrivateChat) => {
     footer: {
       text: footerText,
     },
+    thumbnail: {
+      url: cmd.clan.logo,
+    },
   };
   if (toPrivateChat) {
     await cmd.msg.author.send({ embed: embed });

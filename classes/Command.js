@@ -69,7 +69,8 @@ export default class Command {
    */
   async getPlayerApi() {
     const [status, player] = await this.api.getPlayer(this.playerTag);
-    if (await this.checkApiStatus(status)) return true;
+    if (await this.checkApiStatus(status, "player", this.playerTag))
+      return true;
     this.playerApi = player;
   }
 
@@ -79,7 +80,7 @@ export default class Command {
    */
   async getClanApi() {
     const [status, clan] = await this.api.getClan(this.clanTag);
-    if (await this.checkApiStatus(status)) return true;
+    if (await this.checkApiStatus(status, "clan", this.clanTag)) return true;
     this.clanApi = clan;
   }
 
@@ -87,10 +88,10 @@ export default class Command {
    * Handle 404 and not 200 status codes
    * @private
    */
-  async checkApiStatus(status) {
+  async checkApiStatus(status, type, tag) {
     if (status === 404) {
-      await this.send(`:x: Il player con tag #${this.playerTag} non esiste`);
-      await mostraClan(this);
+      await this.send(`:x: Il ${type} con tag #${tag} non esiste`);
+      // await mostraClan(this);
       return true;
     }
     if (status !== 200) {
@@ -195,7 +196,7 @@ export default class Command {
     if (!tag) {
       return true;
     }
-    if (tag.length < 6 || tag.length > 10) {
+    if (tag.length < 5 || tag.length > 10) {
       this.send(`:x: Il tag di questo ${type} non esiste!`);
       return true;
     }

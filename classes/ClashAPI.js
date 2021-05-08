@@ -39,9 +39,6 @@ export default class ClashAPI {
         }),
       };
       res = await fetch(url, headers);
-      if (res.status !== 200) {
-        console.error("Token request rejected");
-      }
     }
     let jsonRes = await res.json();
     return [res.status, jsonRes];
