@@ -1,6 +1,6 @@
 import Command from "../classes/Command.js";
 import { mostraClans, mostraClan } from "./mostra.js";
-import exportSpreadsheet from "../classes/export-spreadsheet.js";
+import { updateSpreadsheet } from "../classes/spreadsheet.js";
 
 export const execute = async (msg, args, api) => {
   const cmd = new Command(name, argsRule, msg, args, api);
@@ -25,7 +25,7 @@ export const execute = async (msg, args, api) => {
   }
   await cmd.clan.save();
   await mostraClan(cmd, true);
-  exportSpreadsheet();
+  updateSpreadsheet();
 };
 
 const argsRule = ["#TAGCLAN"];

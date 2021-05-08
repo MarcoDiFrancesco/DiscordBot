@@ -3,7 +3,7 @@ import Command from "../classes/Command.js";
 import Clan from "../models/Clan.js";
 import Player from "../models/Player.js";
 import { mostraClans } from "./mostra.js";
-import exportSpreadsheet from "../classes/export-spreadsheet.js";
+import { resetSpreadsheet } from "../classes/spreadsheet.js";
 
 export const execute = async (msg, args, api) => {
   const cmd = new Command(name, argsRule, msg, args, api);
@@ -19,7 +19,8 @@ export const execute = async (msg, args, api) => {
 
   await cmd.send(":white_check_mark: Database e Google Spreadsheet ripuliti");
   await mostraClans(cmd);
-  exportSpreadsheet();
+  // TODO: create function that deltes all records instead of writing only updating cells
+  resetSpreadsheet();
 };
 
 const argsRule = [];

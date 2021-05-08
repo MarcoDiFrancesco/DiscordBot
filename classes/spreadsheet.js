@@ -2,9 +2,8 @@ import { GoogleSpreadsheet } from "google-spreadsheet";
 import Clan from "../models/Clan.js";
 import Player from "../models/Player.js";
 
-export default async () => {
+const getSpreadsheet = async () => {
   const doc = new GoogleSpreadsheet(process.env.SPREADSHEET_ID);
-
   await doc.useServiceAccountAuth({
     client_email: process.env.GOOGLE_EMAIL,
     private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/gm, "\n"),
@@ -14,7 +13,11 @@ export default async () => {
   // Get first sheet
   const sheet = doc.sheetsByIndex[0];
   await sheet.loadCells();
+  return sheet;
+};
 
+export const updateSpreadsheet = async () => {
+  const sheet = await getSpreadsheet();
   const players = await Player.find();
   const clans = await Clan.find().sort("name");
 
@@ -50,4 +53,16 @@ export default async () => {
 
   sheet.saveUpdatedCells();
   console.log("Spreadsheet updated");
+};
+
+export const resetSpreadsheet = async () => {
+  const sheet = await getSpreadsheet();
+  console.log("Before");
+  for (let row = 0; row < 1000; row++) {
+    sheet.getCell(row, 1).value = "";
+    sheet.getCell(row, 2).value = "";
+    sheet.getCell(row, 3).value = "";
+  }
+  sheet.saveUpdatedCells();
+  console.log("After");
 };

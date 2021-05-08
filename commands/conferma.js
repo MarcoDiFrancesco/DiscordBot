@@ -1,7 +1,7 @@
 import Player from "../models/Player.js";
 import { mostraClan } from "./mostra.js";
 import Command from "../classes/Command.js";
-import exportSpreadsheet from "../classes/export-spreadsheet.js";
+import { updateSpreadsheet } from "../classes/spreadsheet.js";
 
 export const execute = async (msg, args, api) => {
   const cmd = new Command(name, argsRule, msg, args, api);
@@ -40,7 +40,7 @@ export const execute = async (msg, args, api) => {
   cmd.clan.confirmed = true;
   await cmd.clan.save();
   await mostraClan(cmd);
-  exportSpreadsheet();
+  updateSpreadsheet();
 };
 
 const argsRule = [];
