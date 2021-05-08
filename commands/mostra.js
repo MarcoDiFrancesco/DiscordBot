@@ -53,9 +53,11 @@ export const mostraClan = async (cmd, isMostraCommand, toPrivateChat) => {
     footerText = ``;
   }
 
+  const clanTag = `([#${cmd.clan.tag}](https://link.clashofclans.com/en?action=OpenClanProfile&tag=#${cmd.clan.tag}))`;
+
   let description;
   if (isMostraCommand) {
-    description = `:trophy: Clan: ${cmd.clan.name} (#${cmd.clan.tag})\n${confirmedEmoji} Partecipazione confermata: ${confirmedText}`;
+    description = `:trophy: Clan: ${cmd.clan.name} ${clanTag}\n${confirmedEmoji} Partecipazione confermata: ${confirmedText}`;
   } else {
     description = `:trophy: Clan: ${cmd.clan.name}\n${confirmedEmoji} Partecipazione confermata: ${confirmedText}`;
   }

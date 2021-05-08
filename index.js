@@ -77,9 +77,12 @@ client.on("message", async (message) => {
       ]);
       return;
     }
-    message.reply(
-      `:x: Questo comando non esiste! Scrivi \`${process.env.PREFIX}help\` per visualizzare tutti i comandi`
-    );
+    // If '?a' write, if '??' do not
+    if (message.content.length >= 2 && message.content[1].match(/[a-z]/i)) {
+      message.reply(
+        `:x: Questo comando non esiste! Scrivi \`${process.env.PREFIX}help\` per visualizzare tutti i comandi`
+      );
+    }
     return;
   }
 

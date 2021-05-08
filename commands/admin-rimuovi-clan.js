@@ -1,6 +1,7 @@
 import Clan from "../models/Clan.js";
 import { mostraClans } from "./mostra.js";
 import Command from "../classes/Command.js";
+import Player from "../models/Player.js";
 
 export const execute = async (msg, args, api) => {
   const cmd = new Command(name, argsRule, msg, args, api);
@@ -14,6 +15,7 @@ export const execute = async (msg, args, api) => {
     mostraClans(cmd);
     return;
   }
+  await Player.deleteMany({ clan: cmd.clan._id });
   await Clan.deleteOne({ _id: cmd.clan._id });
   await cmd.send(
     `:white_check_mark: Rimosso clan **${cmd.clan.name}** (${cmd.clan.tag})`
