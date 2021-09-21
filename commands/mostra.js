@@ -203,18 +203,16 @@ export const mostraClans = async (cmd) => {
     str += clan.name;
     values.push(str);
   }
-  const fields = [
-    {
-      name: "⠀⠀⠀Tag⠀⠀⠀⠀⠀Nome",
-      value: values,
-    },
-  ];
+  let descStr = `:trophy: Clan iscritti: ${clans.length}\n:white_check_mark: Confermati: ${confirmedCounter}\n\n`;
+  descStr += "**⠀⠀⠀Tag⠀⠀⠀⠀⠀Nome**\n";
+  // Join list with end of line
+  descStr += values.join("\r\n");
   const embed = {
     inline: true,
     color: "0x0099ff",
-    description: `:trophy: Clan iscritti: ${clans.length}\n:white_check_mark: Confermati: ${confirmedCounter}`,
-    fields: fields,
+    description: descStr,
   };
+
   await cmd.send({ embed: embed });
 };
 
