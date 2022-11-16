@@ -19,3 +19,7 @@ Player:
 - primary: boolean  // Primary or secondary account (default True)
 - clan: Clan
 ```
+
+## Setup
+
+![image](https://user-images.githubusercontent.com/7454137/202128573-233015cd-2431-4916-a529-199c963d6e91.png)
